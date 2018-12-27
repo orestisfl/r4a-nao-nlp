@@ -1,3 +1,4 @@
+# TODO: docstrings
 import logging
 import os
 import tarfile
@@ -25,6 +26,8 @@ class Shared:
         self.srl_predictor = None
         self.coref_predictor = None
         self.spacy = None
+
+        self.srl_cache = {}
 
     def init(
         self,
@@ -106,11 +109,13 @@ class Shared:
         logger.debug("Passing '%s' to snips engine", s)
         return self.engine.parse(s)
 
-    @lru_cache(maxsize=None)
     def srl(self, s: str) -> JsonDict:
         assert self.srl_predictor
 
-        return self.srl_predictor.predict(s)
+        # TODO: just lru cache
+        r = self.srl_predictor.predict(s)
+        self.srl_cache[s] = r
+        return r
 
     def coref(self, s: str) -> Union[spacy.tokens.doc.Doc, JsonDict]:
         if self.neuralcoref:
@@ -120,14 +125,9 @@ class Shared:
 
             return self.coref_predictor.predict(s)
 
-    # XXX: not a good idea to use by default.
-    # Eg: "The woman reading a newspaper sat on the bench with her dog." ->
-    # -> "The woman reading a newspaper sat on the bench with The woman reading a
-    # newspaper dog."
-    def coref_resolve(self, s: str) -> str:
-        assert self.neuralcoref
-
-        return self.coref(s)._.coref_resolved
-
 
 shared = Shared()
+
+
+def parsed_score(parsed: JsonDict) -> float:
+    return 0.0 if parsed["intent"] is None else parsed["intent"]["probability"]
