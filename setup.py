@@ -39,6 +39,7 @@ setup(
         "allennlp",
         "snips-nlu",
     ],
+    package_data={"r4a_nao_nlp": ["engine.tar.gz"]},
     author="Orestis Floros",
     author_email="orestisf1993@gmail.com",
     description="TODO",
