@@ -51,4 +51,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: Linux",
     ],
+    entry_points={
+        "console_scripts": ["r4a_nao_nlp = r4a_nao_nlp.__main__:entry_point"]
+    },
 )
