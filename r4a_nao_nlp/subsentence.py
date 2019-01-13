@@ -9,7 +9,6 @@ from spacy.tokens.span import Span
 from spacy.tokens.token import Token
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)  # TODO
 
 
 class SubSentence:

@@ -1,4 +1,5 @@
 # TODO: docstrings
+import argparse
 import logging
 from typing import List
 
@@ -7,10 +8,11 @@ from r4a_nao_nlp.engines import JsonDict, parsed_score, shared
 from spacy.tokens.doc import Doc
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)  # TODO
 
 
-def main() -> int:
+def main(argv: List[str]) -> int:
+    parse_command_line(argv[1:])
+
     shared.init()
 
     while True:
@@ -25,6 +27,24 @@ def main() -> int:
             logger.exception("Failed to load %s", line)
         else:
             process_document(shared.spacy(text.strip()))
+
+
+def parse_command_line(argv: List[str]) -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help="increases log verbosity for each occurence.",
+    )
+    arguments = parser.parse_args(argv)
+
+    # Increase the verbosity of the root logger. TODO: maybe increase verbosity
+    # for each of our own modules instead of everything.
+    log_level = max(3 - arguments.verbose, 0) * 10
+    logging.getLogger().setLevel(log_level)
+    logger.debug("Set log level to %d", log_level)
 
 
 def process_document(doc: Doc) -> None:

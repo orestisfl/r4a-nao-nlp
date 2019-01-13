@@ -9,7 +9,6 @@ from typing import Any, Dict, Optional, Union
 import spacy
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)  # TODO
 # XXX: Can use pkg_resources to find distributed resources:
 # https://setuptools.readthedocs.io/en/latest/pkg_resources.html
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -95,6 +94,8 @@ class Shared:
         if neural_coref_model:
             logger.debug("Loading spacy neuralcoref model %s", neural_coref_model)
             self.spacy = self.neuralcoref = spacy.load(neural_coref_model)
+
+        logger.info("Done loading")
 
     def parse(self, s: str, use_cache: bool = True) -> dict:
         assert self.engine
