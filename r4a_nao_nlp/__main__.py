@@ -1,4 +1,5 @@
 # TODO: docstring
+# vim:ts=4:sw=4:expandtab:fo-=t
 from r4a_nao_nlp.cli import main
 
 if __name__ == "__main__":

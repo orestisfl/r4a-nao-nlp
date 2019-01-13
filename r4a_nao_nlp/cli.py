@@ -1,4 +1,5 @@
 # TODO: docstrings
+# vim:ts=4:sw=4:expandtab:fo-=t
 import argparse
 import logging
 from typing import List
