@@ -11,8 +11,6 @@ logger.setLevel(logging.DEBUG)  # TODO
 
 
 def main() -> int:
-    import os
-
     shared.init()
 
     while True:
@@ -20,12 +18,13 @@ def main() -> int:
             line = input()
         except EOFError:
             return 0
-        if os.path.isfile(line):
+        try:
             with open(line) as f:
                 text = f.read()
-            process_document(shared.spacy(text))
+        except OSError:
+            logger.exception("Failed to load %s", line)
         else:
-            return 1
+            process_document(shared.spacy(text))
 
 
 def process_document(doc: Doc) -> None:
