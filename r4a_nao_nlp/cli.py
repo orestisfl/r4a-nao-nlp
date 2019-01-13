@@ -24,7 +24,7 @@ def main() -> int:
         except OSError:
             logger.exception("Failed to load %s", line)
         else:
-            process_document(shared.spacy(text))
+            process_document(shared.spacy(text.strip()))
 
 
 def process_document(doc: Doc) -> None:
