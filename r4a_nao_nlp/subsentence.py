@@ -120,6 +120,11 @@ class SubSentence:
         # TODO: explain like coref_resolved etc
 
         base_tokens = tuple(token.text_with_ws for token in tokens)  # TODO:rename
+
+        result = {"".join(base_tokens)}
+        if not self.sent.doc._.has("coref_clusters"):
+            return result
+
         base_clusters = {
             cluster for token in tokens for cluster in token._.coref_clusters
         }
@@ -135,7 +140,6 @@ class SubSentence:
                 if indices:
                     corefs.append((cluster, coref, indices))
 
-        result = {"".join(base_tokens)}
         for r in range(1, len(corefs) + 1):
             for c in combinations(corefs, r):
                 resolved = list(base_tokens)
