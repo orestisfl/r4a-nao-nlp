@@ -182,6 +182,7 @@ class SubSentence:
             # TODO: (Test) argms tokens should be printed if not in other.
             if not self.include_token(token, modifiers)
             and (other is None or not other.include_token(token, modifiers))
+            and not any(mod.include_token(token, []) for mod in modifiers)
         ]
 
     def __str__(self):
