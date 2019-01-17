@@ -24,7 +24,7 @@ class Shared:
         self.engine = None
         self.srl_predictor = None
         self.coref_predictor = None
-        self.spacy = None
+        self._spacy = None
 
         self.srl_cache = {}
 
@@ -91,26 +91,27 @@ class Shared:
             import spacy
 
             logger.debug("Loading spacy lang %s", spacy_lang)
-            self.spacy = spacy.load(spacy_lang)
+            self._spacy = spacy.load(spacy_lang)
 
         if neural_coref_model:
             import spacy
 
             logger.debug("Loading spacy neuralcoref model %s", neural_coref_model)
-            self.spacy = self.neuralcoref = spacy.load(neural_coref_model)
+            self._spacy = self.neuralcoref = spacy.load(neural_coref_model)
 
         logger.info("Done loading")
 
     def parse(self, s: str, use_cache: bool = True) -> dict:
-        assert self.engine
-
         if use_cache:
             return self._parse(s)
         else:
+            assert self.engine
             return self.engine.parse(s)
 
     @lru_cache(maxsize=1024)
     def _parse(self, s: str) -> "JsonDict":
+        assert self.engine
+
         logger.debug("Passing '%s' to snips engine", s)
         return self.engine.parse(s)
 
@@ -121,6 +122,12 @@ class Shared:
         r = self.srl_predictor.predict(s)
         self.srl_cache[s] = r
         return r
+
+    def spacy(self, s: str) -> "Doc":
+        assert self._spacy
+
+        logger.debug("Passing '%s' to spacy", s)
+        return self._spacy(s)
 
     def coref(self, s: str) -> Union["Doc", "JsonDict"]:
         if self.neuralcoref:

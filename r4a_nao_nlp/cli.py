@@ -76,11 +76,7 @@ def process_document(doc: "Doc") -> None:
         )
         for subsentence1, words1, subsentence2, words2 in max_combination_complex:
             # TODO: better printing
-            result = "- " if words2 else ""
-            result += snips_dict_to_str(subsentence1.parsed)
-            if result is None:
-                logger.error("No intend in result")
-                continue
+            result = "- " if words2 else "" + snips_dict_to_str(subsentence1.parsed)
             if words1:
                 result += " " + " ".join(str(token) for token in words1)
             if subsentence2 and words2:
@@ -91,8 +87,8 @@ def process_document(doc: "Doc") -> None:
 
 
 def snips_dict_to_str(parsed: "JsonDict") -> str:
-    if parsed["intent"] is None:
-        return None
+    assert parsed["intent"] is not None
+
     return "{intent}({args})".format(
         intent=parsed["intent"]["intentName"],
         args=",".join(
