@@ -2,11 +2,13 @@
 # vim:ts=4:sw=4:expandtab:fo-=t
 import argparse
 import logging
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from r4a_nao_nlp import subsentence
-from r4a_nao_nlp.engines import JsonDict, parsed_score, shared
-from spacy.tokens.doc import Doc
+from r4a_nao_nlp.engines import parsed_score, shared
+
+if TYPE_CHECKING:
+    from r4a_nao_nlp.typing import JsonDict, Doc
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +50,7 @@ def parse_command_line(argv: List[str]) -> None:
     logger.debug("Set log level to %d", log_level)
 
 
-def process_document(doc: Doc) -> None:
+def process_document(doc: "Doc") -> None:
     for sent in doc.sents:
         logger.debug("Processing sent: %s", str(sent))
 
@@ -88,7 +90,7 @@ def process_document(doc: Doc) -> None:
             print(result)
 
 
-def snips_dict_to_str(parsed: JsonDict) -> str:
+def snips_dict_to_str(parsed: "JsonDict") -> str:
     if parsed["intent"] is None:
         return None
     return "{intent}({args})".format(
@@ -100,7 +102,7 @@ def snips_dict_to_str(parsed: JsonDict) -> str:
     )
 
 
-def slot_value_repr(slot: JsonDict) -> str:
+def slot_value_repr(slot: "JsonDict") -> str:
     if "value" in slot["value"]:
         return slot["value"]["value"]
     else:
@@ -108,7 +110,7 @@ def slot_value_repr(slot: JsonDict) -> str:
     # TODO snips/duration etc
 
 
-def calc_score(clauses: List[JsonDict]) -> float:
+def calc_score(clauses: List["JsonDict"]) -> float:
     assert clauses
 
     # XXX: alternative scoring strategies

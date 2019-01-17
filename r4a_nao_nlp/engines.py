@@ -5,16 +5,15 @@ import os
 import tarfile
 from functools import lru_cache
 from tempfile import TemporaryDirectory
-from typing import Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
-import spacy
+if TYPE_CHECKING:
+    from r4a_nao_nlp.typing import JsonDict, Doc
 
 logger = logging.getLogger(__name__)
 # XXX: Can use pkg_resources to find distributed resources:
 # https://setuptools.readthedocs.io/en/latest/pkg_resources.html
 HERE = os.path.abspath(os.path.dirname(__file__))
-
-JsonDict = Dict[str, Any]
 
 
 class Shared:
@@ -89,10 +88,14 @@ class Shared:
                 neural_coref_model,
             )
         elif spacy_lang:
+            import spacy
+
             logger.debug("Loading spacy lang %s", spacy_lang)
             self.spacy = spacy.load(spacy_lang)
 
         if neural_coref_model:
+            import spacy
+
             logger.debug("Loading spacy neuralcoref model %s", neural_coref_model)
             self.spacy = self.neuralcoref = spacy.load(neural_coref_model)
 
@@ -107,11 +110,11 @@ class Shared:
             return self.engine.parse(s)
 
     @lru_cache(maxsize=1024)
-    def _parse(self, s: str) -> JsonDict:
+    def _parse(self, s: str) -> "JsonDict":
         logger.debug("Passing '%s' to snips engine", s)
         return self.engine.parse(s)
 
-    def srl(self, s: str) -> JsonDict:
+    def srl(self, s: str) -> "JsonDict":
         assert self.srl_predictor
 
         # TODO: just lru cache
@@ -119,7 +122,7 @@ class Shared:
         self.srl_cache[s] = r
         return r
 
-    def coref(self, s: str) -> Union[spacy.tokens.doc.Doc, JsonDict]:
+    def coref(self, s: str) -> Union["Doc", "JsonDict"]:
         if self.neuralcoref:
             return self.neuralcoref(s)
         else:
@@ -131,5 +134,5 @@ class Shared:
 shared = Shared()
 
 
-def parsed_score(parsed: JsonDict) -> float:
+def parsed_score(parsed: "JsonDict") -> float:
     return 0.0 if parsed["intent"] is None else parsed["intent"]["probability"]
