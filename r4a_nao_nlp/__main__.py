@@ -4,6 +4,10 @@ def enter_cli_main():
     entry_point("r4a_nao_nlp.cli")
 
 
+def enter_train_main():
+    entry_point("r4a_nao_nlp.train")
+
+
 def entry_point(main_module: str):
     import importlib
     import sys
