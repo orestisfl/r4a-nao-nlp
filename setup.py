@@ -52,6 +52,8 @@ setup(
         "Operating System :: Linux",
     ],
     entry_points={
-        "console_scripts": ["r4a_nao_nlp = r4a_nao_nlp.__main__:entry_point"]
+        "console_scripts": [
+            "r4a_nao_nlp = r4a_nao_nlp.__main__:enter_cli_main",
+        ]
     },
 )

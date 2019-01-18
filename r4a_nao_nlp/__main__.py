@@ -1,15 +1,19 @@
 # TODO: docstring
 # vim:ts=4:sw=4:expandtab:fo-=t
-from r4a_nao_nlp.cli import main
+def enter_cli_main():
+    entry_point("r4a_nao_nlp.cli")
 
 
-def entry_point():
+def entry_point(main_module: str):
+    import importlib
     import sys
     import logging
 
     logging.basicConfig()
+
+    main = importlib.import_module(main_module).main
     sys.exit(main(sys.argv))
 
 
 if __name__ == "__main__":
-    entry_point()
+    enter_cli_main()
