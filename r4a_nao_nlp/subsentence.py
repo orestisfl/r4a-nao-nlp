@@ -1,16 +1,16 @@
 # TODO: docstrings
 # vim:ts=4:sw=4:expandtab:fo-=t
-import logging
 from functools import reduce
 from itertools import combinations, permutations
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set, Tuple
 
+from r4a_nao_nlp import logging
 from r4a_nao_nlp.engines import parsed_score, shared
 
 if TYPE_CHECKING:
     from r4a_nao_nlp.typing import JsonDict, Span, Token
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
 class SubSentence:

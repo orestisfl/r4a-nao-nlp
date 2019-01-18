@@ -7,9 +7,10 @@ def enter_cli_main():
 def entry_point(main_module: str):
     import importlib
     import sys
-    import logging
 
-    logging.basicConfig()
+    from r4a_nao_nlp import logging
+
+    logging.init()
 
     main = importlib.import_module(main_module).main
     sys.exit(main(sys.argv))

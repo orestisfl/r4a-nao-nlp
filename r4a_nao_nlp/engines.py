@@ -1,6 +1,5 @@
 # TODO: docstrings
 # vim:ts=4:sw=4:expandtab:fo-=t
-import logging
 import os
 import tarfile
 from functools import lru_cache
@@ -10,7 +9,9 @@ from typing import TYPE_CHECKING, Optional, Union
 if TYPE_CHECKING:
     from r4a_nao_nlp.typing import JsonDict, Doc
 
-logger = logging.getLogger(__name__)
+from r4a_nao_nlp import logging
+
+logger = logging.get_logger(__name__)
 # XXX: Can use pkg_resources to find distributed resources:
 # https://setuptools.readthedocs.io/en/latest/pkg_resources.html
 HERE = os.path.abspath(os.path.dirname(__file__))

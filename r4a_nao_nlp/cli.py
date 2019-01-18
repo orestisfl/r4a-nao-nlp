@@ -1,16 +1,15 @@
 # TODO: docstrings
 # vim:ts=4:sw=4:expandtab:fo-=t
 import argparse
-import logging
 from typing import TYPE_CHECKING, List
 
-from r4a_nao_nlp import subsentence
+from r4a_nao_nlp import subsentence, logging
 from r4a_nao_nlp.engines import parsed_score, shared
 
 if TYPE_CHECKING:
     from r4a_nao_nlp.typing import JsonDict, Doc
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
 def main(argv: List[str]) -> int:
@@ -43,10 +42,8 @@ def parse_command_line(argv: List[str]) -> None:
     )
     arguments = parser.parse_args(argv)
 
-    # Increase the verbosity of the root logger. TODO: maybe increase verbosity
-    # for each of our own modules instead of everything.
     log_level = max(3 - arguments.verbose, 0) * 10
-    logging.getLogger().setLevel(log_level)
+    logging.set_level(log_level)
     logger.debug("Set log level to %d", log_level)
 
 
