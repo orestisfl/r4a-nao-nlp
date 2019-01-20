@@ -263,10 +263,10 @@ class Combination:
             for key, value in subsentence.modifiers.items():
                 if key in modifiers:
                     (inter, argms) = value
-                    words_before = self.sent[argms.start : min(argms.end, inter.start)]
+                    words_before = self.sent.doc[argms.start : inter.start]
                     if not words_before:
                         words_before = None
-                    words_after = self.sent[max(argms.start, inter.end) : argms.end]
+                    words_after = self.sent.doc[inter.end + 1 : argms.end]
                     if not words_after:
                         words_after = None
                     result.append((subsentence, words_before, key, words_after))
