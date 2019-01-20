@@ -93,7 +93,7 @@ def mock_srl(all_tags: List[List[str]], sent: Span) -> Mock:
     return Mock(
         return_value={
             "words": [str(token) for token in sent],
-            "verbs": [{"tags": tags} for tags in all_tags],
+            "verbs": [{"tags": tags, "description": "mock"} for tags in all_tags],
         }
     )
 

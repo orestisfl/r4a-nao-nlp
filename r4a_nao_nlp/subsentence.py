@@ -310,6 +310,7 @@ def span_search(value: "Span", *spans: "Span") -> Optional["Span"]:
 
 def create_combinations(sent: "Span") -> List[Combination]:
     result = shared.srl(str(sent))
+    logger.debug("SRL (descriptions): %s", [v["description"] for v in result["verbs"]])
     assert result["words"] == [str(token) for token in sent]
 
     all_tags: List[List[str]] = [verb["tags"] for verb in result["verbs"]]
