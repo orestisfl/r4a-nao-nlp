@@ -121,9 +121,14 @@ class SubSentence:
         # TODO: explain like coref_resolved etc
 
         base_tokens = tuple(token.text_with_ws for token in tokens)  # TODO:rename
-
         result = {"".join(base_tokens)}
-        if not self.sent.doc._.has("coref_clusters"):
+
+        # We also need to check if .coref_clusters is empty because of
+        # https://github.com/huggingface/neuralcoref/issues/58.
+        if (
+            not self.sent.doc._.has("coref_clusters")
+            or not self.sent.doc._.coref_clusters
+        ):
             return result
 
         base_clusters = {
