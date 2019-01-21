@@ -292,12 +292,14 @@ class Combination:
         return ", ".join(str(s) for s in self)
 
 
-def span_intersect(*spans: "Span") -> "Span":
+def span_intersect(*spans: "Span") -> Optional["Span"]:
     if spans:
         doc = spans[0].doc
-        return reduce(
+        result = reduce(
             lambda a, b: doc[max(a.start, b.start) : min(a.end, b.end)], spans
         )
+        return result if result else None
+    return None
 
 
 def span_search(value: "Span", *spans: "Span") -> Optional["Span"]:
