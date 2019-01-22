@@ -28,7 +28,7 @@ def main(argv: List[str]) -> int:
         except OSError:
             logger.exception("Failed to load %s", line)
         else:
-            process_document(shared.spacy(text.strip()))
+            process_document(shared.spacy(text))
 
 
 def parse_command_line(argv: List[str]) -> None:
