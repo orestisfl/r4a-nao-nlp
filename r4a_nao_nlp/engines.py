@@ -81,7 +81,6 @@ class Shared:
                 cached_path(coref_predictor_path)
             )
 
-        # TODO: disable parser? https://spacy.io/usage/linguistic-features
         if spacy_lang and neural_coref_model:
             logger.debug(
                 "Skipping spacy model %s, will load neuralcoref model %s",
