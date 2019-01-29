@@ -3,13 +3,14 @@
 import os
 import tarfile
 from functools import lru_cache
+from operator import itemgetter
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Optional, Union
 
+from r4a_nao_nlp import logging
+
 if TYPE_CHECKING:
     from r4a_nao_nlp.typing import JsonDict, Doc
-
-from r4a_nao_nlp import logging
 
 logger = logging.get_logger(__name__)
 # XXX: Can use pkg_resources to find distributed resources:
@@ -101,19 +102,12 @@ class Shared:
 
         logger.info("Done loading")
 
-    def parse(self, s: str, use_cache: bool = True) -> dict:
-        if use_cache:
-            return self._parse(s)
-        else:
-            assert self.engine
-            return self.engine.parse(s)
-
     @lru_cache(maxsize=1024)
-    def _parse(self, s: str) -> "JsonDict":
+    def parse(self, s: str) -> "SnipsResult":
         assert self.engine
 
         logger.debug("Passing '%s' to snips engine", s)
-        return self.engine.parse(s)
+        return SnipsResult(self.engine.parse(s))
 
     def srl(self, s: str) -> "JsonDict":
         assert self.srl_predictor
@@ -144,6 +138,62 @@ class Shared:
 
 shared = Shared()
 
+# TODO: https://docs.python.org/3/library/dataclasses.html
+class SnipsResult(tuple):
+    """Immutable convenience object that holds the output of the SNIPS engine"""
 
-def parsed_score(parsed: "JsonDict") -> float:
-    return 0.0 if parsed["intent"] is None else parsed["intent"]["probability"]
+    __slots__ = []
+
+    def __new__(cls, parsed: Optional["JsonDict"] = None):
+        if (
+            parsed is None
+            or parsed["intent"] is None
+            or parsed["intent"]["intentName"] is None
+        ):
+            score = 0.0
+            name = None
+            slots = tuple()
+        else:
+            score = parsed["intent"]["probability"]
+            name = parsed["intent"]["intentName"]
+            slots = tuple(parsed["slots"])
+        return tuple.__new__(cls, (score, name, slots))
+
+    score = property(itemgetter(0))
+    name = property(itemgetter(1))
+    slots = property(itemgetter(2))
+
+    def __bool__(self):
+        return self.name is not None
+
+    def __float__(self):
+        return float(self.score)
+
+    def __iter__(self):
+        return iter(self.slots)
+
+    def __lt__(self, other: object):
+        if not isinstance(other, SnipsResult):
+            return NotImplemented
+
+        return self.score < other.score
+
+    def __str__(self):
+        return "{intent}({args})".format(
+            intent=self.name,
+            args=",".join(
+                "{slot}={value}".format(
+                    slot=slot["slotName"], value=_slot_value_repr(slot)
+                )
+                for slot in self.slots
+            ),
+        )
+
+
+def _slot_value_repr(slot: "JsonDict") -> str:
+    if "value" in slot["value"]:
+        return slot["value"]["value"]
+    else:
+        return slot["rawValue"]
+    # TODO: snips/duration etc
+    # TODO: maybe add a Slot class

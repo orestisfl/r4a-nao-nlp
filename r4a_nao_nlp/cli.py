@@ -3,11 +3,11 @@
 import argparse
 from typing import TYPE_CHECKING, List
 
-from r4a_nao_nlp import subsentence, logging
-from r4a_nao_nlp.engines import parsed_score, shared
+from r4a_nao_nlp import logging, subsentence
+from r4a_nao_nlp.engines import shared
 
 if TYPE_CHECKING:
-    from r4a_nao_nlp.typing import JsonDict, Doc
+    from r4a_nao_nlp.typing import Doc
 
 logger = logging.get_logger(__name__)
 
@@ -59,9 +59,8 @@ def process_document(doc: "Doc") -> None:
             max_idx = max(enumerate(scores), key=lambda x: x[1])[0]
 
         simple = shared.parse(str(sent))
-        if not combinations or scores[max_idx] < parsed_score(simple):
+        if not combinations or scores[max_idx] < simple.score:
             logger.debug("Prefering full sentence")
-            print(snips_dict_to_str(simple))
             continue
 
         max_combination = combinations[max_idx]
@@ -73,34 +72,14 @@ def process_document(doc: "Doc") -> None:
         )
         for subsentence1, words1, subsentence2, words2 in max_combination_complex:
             # TODO: better printing
-            result = "- " if words2 else "" + snips_dict_to_str(subsentence1.parsed)
+            result = "- " if words2 else "" + str(subsentence1.parsed)
             if words1:
                 result += " " + " ".join(str(token) for token in words1)
             if subsentence2 and words2:
-                result += snips_dict_to_str(subsentence2.parsed)
+                result += str(subsentence2.parsed)
             if words2:
                 result += " " + " ".join(str(token) for token in words2)
             print(result)
-
-
-def snips_dict_to_str(parsed: "JsonDict") -> str:
-    assert parsed["intent"] is not None
-
-    return "{intent}({args})".format(
-        intent=parsed["intent"]["intentName"],
-        args=",".join(
-            "{slot}={value}".format(slot=slot["slotName"], value=slot_value_repr(slot))
-            for slot in parsed["slots"]
-        ),
-    )
-
-
-def slot_value_repr(slot: "JsonDict") -> str:
-    if "value" in slot["value"]:
-        return slot["value"]["value"]
-    else:
-        return slot["rawValue"]
-    # TODO snips/duration etc
 
 
 def calc_score(clauses: List["JsonDict"]) -> float:
@@ -108,8 +87,8 @@ def calc_score(clauses: List["JsonDict"]) -> float:
 
     # XXX: alternative scoring strategies
     # # product
-    # return reduce(operator.mul, (parsed_score(clause) for clause in clauses))
+    # return reduce(operator.mul, (clause.score for clause in clauses))
     # # min
     # return min((intent_clause(clause) for clause in clauses))
     # avg
-    return sum((parsed_score(clause) for clause in clauses)) / len(clauses)
+    return sum((clause.score for clause in clauses)) / len(clauses)

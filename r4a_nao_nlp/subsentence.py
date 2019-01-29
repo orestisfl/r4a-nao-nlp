@@ -5,10 +5,11 @@ from itertools import combinations, permutations
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set, Tuple
 
 from r4a_nao_nlp import logging
-from r4a_nao_nlp.engines import parsed_score, shared
+from r4a_nao_nlp.engines import shared
 
 if TYPE_CHECKING:
     from r4a_nao_nlp.typing import JsonDict, Span, Token
+    from r4a_nao_nlp.engines import SnipsResult
 
 logger = logging.get_logger(__name__)
 
@@ -30,7 +31,7 @@ class SubSentence:
         self.modifiers: Dict["SubSentence", Tuple["Span", "Span"]] = {}
         self.modifying: Dict["SubSentence", Tuple["Span", "Span"]] = {}
         self.compatible: Set["SubSentence"] = set()
-        self.parsed: Optional["JsonDict"] = None
+        self.parsed: Optional[SnipsResult] = None
 
         logger.debug(
             "Attributes: verb: %s, args: %s, argms: %s",
@@ -104,18 +105,9 @@ class SubSentence:
             )
         )
 
-        best_result: Optional[Tuple[float, "JsonDict"]] = None
-        for s in self._coref_combinations(tokens):
-            logger.debug("Parsing %d using '%s'", id(self), s)
-            result = shared.parse(s)
-            score = parsed_score(result)
-            if best_result is None or score > best_result[0]:
-                best_result = (score, result)
-
-        assert best_result is not None
         # XXX: this is hacky, cached value is used in process_document
-        self.parsed = best_result[1]
-        return best_result[1]
+        self.parsed = max(shared.parse(s) for s in self._coref_combinations(tokens))
+        return self.parsed
 
     def _coref_combinations(self, tokens: List["Token"]) -> Set[str]:
         # TODO: explain like coref_resolved etc
@@ -332,7 +324,7 @@ def create_subsentences(all_tags: List[List[str]], sent: "Span") -> List[SubSent
     # TODO: configurable threshold
     subsentences = list(
         filter(
-            lambda s: parsed_score(s.parse()) > 0.1,
+            lambda s: s.parse().score > 0.1,
             (SubSentence(tags, sent) for tags in all_tags),
         )
     )

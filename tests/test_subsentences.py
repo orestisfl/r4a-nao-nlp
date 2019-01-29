@@ -13,7 +13,7 @@ shared.init(
     neural_coref_model=None,
     spacy_lang="en_core_web_sm",
 )
-shared.parse = Mock(return_value={"intent": {"probability": 1.0}})
+shared.parse = Mock(return_value=Mock(score=1.0))
 
 
 def create_spacy_sent(length: int, s: Optional[str] = None) -> Span:
