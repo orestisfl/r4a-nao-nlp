@@ -1,5 +1,6 @@
 # TODO: docstrings
 # vim:ts=4:sw=4:expandtab:fo-=t
+import datetime
 import os
 import tarfile
 from functools import lru_cache
@@ -156,7 +157,7 @@ class SnipsResult(tuple):
         else:
             score = parsed["intent"]["probability"]
             name = parsed["intent"]["intentName"]
-            slots = tuple(parsed["slots"])
+            slots = tuple(SnipsSlot(slot) for slot in parsed["slots"])
         return tuple.__new__(cls, (score, name, slots))
 
     score = property(itemgetter(0))
@@ -180,20 +181,64 @@ class SnipsResult(tuple):
 
     def __str__(self):
         return "{intent}({args})".format(
-            intent=self.name,
-            args=",".join(
-                "{slot}={value}".format(
-                    slot=slot["slotName"], value=_slot_value_repr(slot)
-                )
-                for slot in self.slots
-            ),
+            intent=self.name, args=",".join(str(slot) for slot in self.slots)
         )
 
 
-def _slot_value_repr(slot: "JsonDict") -> str:
-    if "value" in slot["value"]:
-        return slot["value"]["value"]
-    else:
-        return slot["rawValue"]
-    # TODO: snips/duration etc
-    # TODO: maybe add a Slot class
+class SnipsSlot(tuple):
+    """Immutable convenience object that holds the snips output of a single slot"""
+
+    __slots__ = []
+
+    def __new__(cls, parsed: "JsonDict"):
+        r = range(parsed["range"]["start"], parsed["range"]["end"])
+        value = _resolve_value(parsed["value"])
+        return tuple.__new__(cls, (r, value, parsed["entity"], parsed["slotName"]))
+
+    range = property(itemgetter(0))
+    value = property(itemgetter(1))
+    entity = property(itemgetter(2))
+    name = property(itemgetter(3))
+
+    @property
+    def start(self):
+        return self.range.start
+
+    @property
+    def end(self):
+        return self.range.stop
+
+    def __str__(self):
+        return "{}={}".format(self.name, self.value)
+
+
+def _resolve_value(value: "JsonDict") -> Union[datetime.timedelta, float, str]:
+    # https://github.com/snipsco/snips-nlu-ontology#grammar-entity
+    if value["kind"] == "Duration":
+        return _resolve_duration(value)
+    if value["kind"] in ("Number", "Ordinal", "Percentage"):
+        return value["value"]
+
+    # NOTE: Other kinds of entities should be added here when used.
+    assert value["kind"] == "Custom"
+    return value["value"]
+
+
+def _resolve_duration(value: "JsonDict") -> datetime.timedelta:
+    """Convert the parsed value of a snips/duration entity to a datetime timedelta.
+
+    Months and years are converted to their average length in seconds in the Gregorian
+    calendar. This way, the same text will always produce models that use the same
+    duration values in relevant arguments, regardless of the time of parsing.
+    """
+    return datetime.timedelta(
+        weeks=value["weeks"],
+        days=value["days"],
+        seconds=value["seconds"]
+        + 60 * (value["minutes"] + 15 * value["quarters"])
+        + 3600 * value["hours"]
+        # 30.436875 days * 24 hours * 3600 seconds
+        + 2629746 * value["months"]
+        # 365.2425 days * 24 hours * 3600 seconds
+        + 31557600 * value["years"],
+    )
