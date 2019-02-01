@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, List
 
 from r4a_nao_nlp import logging, subsentence
 from r4a_nao_nlp.engines import shared
+from r4a_nao_nlp.graph import Graph
 
 if TYPE_CHECKING:
     from r4a_nao_nlp.typing import Doc
@@ -59,27 +60,16 @@ def process_document(doc: "Doc") -> None:
             max_idx = max(enumerate(scores), key=lambda x: x[1])[0]
 
         simple = shared.parse(str(sent))
-        if not combinations or scores[max_idx] < simple.score:
+        # TODO: modifier? configurable?
+        if not combinations or scores[max_idx] < 0.95 * simple.score:
             logger.debug("Prefering full sentence")
-            continue
-
-        max_combination = combinations[max_idx]
-        max_combination_complex = max_combination.to_complex_list()
-        logger.debug(
-            "Using combination %d - %s",
-            max_idx,
-            ",".join(str(s) for t in max_combination_complex for s in t),
-        )
-        for subsentence1, words1, subsentence2, words2 in max_combination_complex:
-            # TODO: better printing
-            result = "- " if words2 else "" + str(subsentence1.parsed)
-            if words1:
-                result += " " + " ".join(str(token) for token in words1)
-            if subsentence2 and words2:
-                result += str(subsentence2.parsed)
-            if words2:
-                result += " " + " ".join(str(token) for token in words2)
-            print(result)
+            g = Graph()
+            g.add_node(
+                subsentence.SubSentence(["B-V"] + (len(sent) - 1) * ["I-V"], sent)
+            )
+        else:
+            g = combinations[max_idx].to_graph()
+        g.plot(str(sent) + ("." if str(sent[-1]) != "." else "") + "pdf")
 
 
 def calc_score(clauses: List["JsonDict"]) -> float:

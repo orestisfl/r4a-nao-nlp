@@ -2,9 +2,12 @@ from string import ascii_lowercase
 from typing import List, Optional
 from unittest.mock import Mock
 
+import networkx as nx
 from r4a_nao_nlp import subsentence
 from r4a_nao_nlp.engines import shared
+from r4a_nao_nlp.graph import Graph
 from spacy.tokens.span import Span
+from spacy.tokens.token import Token
 
 # We only need spacy
 shared.init(
@@ -164,38 +167,63 @@ def test_multiple_combinations():
     assert all_tags[4] in c_tags[2]
 
 
-def test_complex_list():
+def verify_graph(
+    g: Graph, s: List[subsentence.SubSentence], all_tags: List[List[str]]
+) -> None:
+    for node, data in g.nodes(data=True):
+        if node is None:
+            continue
+        assert "idx" in data
+        idx = data["idx"]
+        assert node.tags == all_tags[idx]
+        assert node == s[idx]
+
+    assert len(g) == len(s) + 1
+    # Last subsentence always connects with None
+    assert None in g
+    assert len(g[None]) == 1
+    assert g.nodes[list(g[None])[0]]["idx_main"] == max(
+        nx.get_node_attributes(g, "idx_main").values()
+    )
+
+
+def cmp_tokens_to_indices(tokens: List[Token], *indices: int) -> bool:
+    return cmp_tokens_to_words(tokens, *(idx_to_word(idx) for idx in indices))
+
+
+def cmp_tokens_to_words(tokens: List[Token], *words: str) -> bool:
+    assert all(isinstance(t, Token) for t in tokens)
+    return [t.text for t in tokens] == list(words)
+
+
+def test_graph():
     all_tags = [
         ["B-V", "B-ARGM-TMP", "I-ARGM-TMP", "O", "O", "O"],
         ["O", "O", "B-V", "B-ARG1", "O", "O"],
         ["O", "O", "O", "B-ARG1", "B-V", "O"],
     ]
     sent = create_spacy_sent(6)
-    shared.srl = mock_srl(all_tags, sent)
-    c = subsentence.create_combinations(sent)
-
+    s = subsentence.create_subsentences(all_tags, sent)
+    c = list(subsentence.create_combinations_from_subsentences(s))
+    assert len(s) == 3
     assert len(c) == 1
 
-    result = c[0].to_complex_list()
-    assert len(result) == 3
+    g = c[0].to_graph()
+    verify_graph(g, s, all_tags)
 
-    assert result[0][0].tags == all_tags[0]
-    assert len(result[0][1]) == 0
-    assert result[0][2].tags == all_tags[2]
-    assert result[0][3] is None
+    adj = g[s[0]]
+    assert len(adj) == 2
+    assert cmp_tokens_to_indices(adj[s[1]]["label"], 1)
+    assert not adj[s[2]]["label"]
 
-    assert result[1][0].tags == all_tags[0]
-    assert [t.text for t in result[1][1]] == [idx_to_word(1)]
-    assert result[1][2].tags == all_tags[1]
-    assert result[1][3] is None
+    assert len(g[s[1]]) == 1
 
-    assert result[2][0].tags == all_tags[2]
-    assert [t.text for t in result[2][1]] == ["."]
-    assert result[2][2] is None
-    assert result[2][3] is None
+    adj = g[s[2]]
+    assert len(adj) == 2
+    assert cmp_tokens_to_words(adj[None]["label"], ".")
 
 
-def test_complex_list_common_argms():
+def test_graph_common_argms():
     all_tags = [
         [
             "B-V",
@@ -222,29 +250,68 @@ def test_complex_list_common_argms():
         ["O", "O", "O", "O", "O", "O", "O", "B-V", "O"],
     ]
     sent = create_spacy_sent(9, "Wave and extend your left arm while running.")
-    shared.srl = mock_srl(all_tags, sent)
-    c = subsentence.create_combinations(sent)
+    s = subsentence.create_subsentences(all_tags, sent)
+    c = list(subsentence.create_combinations_from_subsentences(s))
+    assert len(s) == 3
     assert len(c) == 1
 
-    result = c[0].to_complex_list()
-    assert len(result) == 4
+    g = c[0].to_graph()
+    verify_graph(g, s, all_tags)
 
-    assert result[0][0].tags == all_tags[0]
-    assert [t.text for t in result[0][1]] == ["and"]
-    assert result[0][2].tags == all_tags[1]
-    assert result[0][3] is None
+    adj = g[s[0]]
+    assert len(adj) == 2
+    assert cmp_tokens_to_words(adj[s[1]]["label"], "and")
+    assert cmp_tokens_to_words(adj[s[2]]["label"], "while")
 
-    assert result[1][0].tags == all_tags[0]
-    assert [t.text for t in result[1][1]] == ["while"]
-    assert result[1][2].tags == all_tags[2]
-    assert result[1][3] is None
+    adj = g[s[1]]
+    assert len(adj) == 3
+    assert cmp_tokens_to_words(adj[None]["label"], ".")
+    assert cmp_tokens_to_words(adj[s[2]]["label"], "while")
 
-    assert result[2][0].tags == all_tags[1]
-    assert [t.text for t in result[2][1]] == ["."]
-    assert result[2][2] is None
-    assert result[2][3] is None
 
-    assert result[3][0].tags == all_tags[1]
-    assert [t.text for t in result[3][1]] == ["while"]
-    assert result[3][2].tags == all_tags[2]
-    assert result[3][3] is None
+def test_graph_multiple_argms_negation():
+    all_tags = [
+        [
+            "B-V",
+            "O",
+            "O",
+            "B-ARG1",
+            "I-ARG1",
+            "B-ARGM-TMP",
+            "I-ARGM-TMP",
+            "I-ARGM-TMP",
+            "I-ARGM-TMP",
+            "O",
+        ],
+        [
+            "O",
+            "O",
+            "B-V",
+            "B-ARG1",
+            "I-ARG1",
+            "B-ARGM-TMP",
+            "I-ARGM-TMP",
+            "I-ARGM-TMP",
+            "I-ARGM-TMP",
+            "O",
+        ],
+        ["O", "O", "O", "O", "O", "O", "B-ARGM-NEG", "B-V", "B-ARG1", "O"],
+    ]
+    sent = create_spacy_sent(10, "Open and extend your arm while not saying hello.")
+    s = subsentence.create_subsentences(all_tags, sent)
+    c = list(subsentence.create_combinations_from_subsentences(s))
+    assert len(s) == 3
+    assert len(c) == 1
+
+    g = c[0].to_graph()
+    verify_graph(g, s, all_tags)
+
+    adj = g[s[0]]
+    assert len(adj) == 2
+    assert cmp_tokens_to_words(adj[s[1]]["label"], "and")
+    assert cmp_tokens_to_words(adj[s[2]]["label"], "while", "not")
+
+    adj = g[s[1]]
+    assert len(adj) == 3
+    assert cmp_tokens_to_words(adj[None]["label"], ".")
+    assert cmp_tokens_to_words(adj[s[2]]["label"], "while", "not")

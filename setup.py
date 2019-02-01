@@ -38,6 +38,7 @@ setup(
         "spacy<=2.0.13",  # https://github.com/explosion/spaCy/issues/2852
         "allennlp",
         "snips-nlu",
+        "networkx",
     ],
     package_data={"r4a_nao_nlp": ["engine.tar.gz"]},
     author="Orestis Floros",

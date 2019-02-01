@@ -9,6 +9,7 @@ from r4a_nao_nlp.engines import shared
 
 if TYPE_CHECKING:
     from r4a_nao_nlp.typing import JsonDict, Span, Token
+    from r4a_nao_nlp.graph import Graph
     from r4a_nao_nlp.engines import SnipsResult
 
 logger = logging.get_logger(__name__)
@@ -230,19 +231,26 @@ class Combination:
             ]
         return self._parsed
 
-    def to_complex_list(self):  # TODO: return value typing
+    def to_graph(self) -> "Graph":
+        from r4a_nao_nlp.graph import Graph
+
         modifiers = [
             subsentence
             for subsentence in self
             if any(other for other in subsentence.modifying if other in self)
         ]
         rest = [subsentence for subsentence in self if subsentence not in modifiers]
-        result = []
+        result = Graph(name=str(self))
+        # Add all subsentences to the graph, index them using their original order.
+        for idx, subsentence in enumerate(self):
+            result.add_node(subsentence, idx=idx)
         for idx, subsentence in enumerate(rest):
             # TODO common_modifiers = {key: value for key, value in subsentence.modifiers.items() if key in modifiers}
+            # TODO: next_subsentence = None and DRY
+            result.nodes[subsentence]["idx_main"] = idx
             if subsentence is rest[-1]:
                 other_words = subsentence.text_connect(modifiers)
-                result.append((subsentence, other_words, None, None))
+                result.add_edge(subsentence, other_words)
 
                 logger.debug(
                     "Last subsentence: '%s', with words after: '%s'",
@@ -252,7 +260,7 @@ class Combination:
             else:
                 next_subsentence = rest[idx + 1]
                 other_words = subsentence.text_connect(modifiers, next_subsentence)
-                result.append((subsentence, other_words, next_subsentence, None))
+                result.add_edge(subsentence, other_words, next_subsentence)
 
                 logger.debug(
                     "SubSentence '%s', with words after: '%s'", subsentence, other_words
@@ -260,13 +268,13 @@ class Combination:
             for key, value in subsentence.modifiers.items():
                 if key in modifiers:
                     (inter, argms) = value
-                    words_before = self.sent.doc[argms.start : inter.start]
+                    words_before = list(self.sent.doc[argms.start : inter.start])
                     if not words_before:
                         words_before = None
-                    words_after = self.sent.doc[inter.end + 1 : argms.end]
+                    words_after = list(self.sent.doc[inter.end + 1 : argms.end])
                     if not words_after:
                         words_after = None
-                    result.append((subsentence, words_before, key, words_after))
+                    result.add_edge(subsentence, words_before, key, words_after)
 
                     logger.debug(
                         "Modifier subsentence '%s' with words '%s' and '%s'",
