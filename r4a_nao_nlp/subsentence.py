@@ -2,7 +2,7 @@
 # vim:ts=4:sw=4:expandtab:fo-=t
 from __future__ import annotations
 
-from functools import reduce
+from functools import partial, reduce
 from itertools import combinations, permutations
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set, Tuple
 
@@ -98,9 +98,11 @@ class SubSentence:
     def parse(self, others: Optional[List[SubSentence]] = None) -> JsonDict:
         tokens = list(
             filter(
-                lambda x: self.include_token(
-                    x,
-                    [modifier for modifier in self.modifiers if modifier in others]
+                partial(
+                    self.include_token,
+                    modifiers=[
+                        modifier for modifier in self.modifiers if modifier in others
+                    ]
                     if others is not None
                     else [],
                 ),
