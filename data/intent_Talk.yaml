@@ -1,0 +1,34 @@
+---
+automatically_extensible: true
+name: Text
+type: entity
+values:
+  - TEXT
+  - Something
+  - Hello
+  - Hello world
+  - Goodbye
+  - Your meal is ready
+  - I am a robot
+  - Good morning and have a great day
+
+---
+automatically_extensible: false
+name: Language
+type: entity
+values:
+  - ENGLISH
+  - GERMAN
+
+---
+name: Talk
+slots:
+  - entity: Text
+    name: text
+  - entity: Language
+    name: language
+  - entity: snips/number
+    name: volume
+  - entity: snips/percentage
+    name: volumePer
+type: intent

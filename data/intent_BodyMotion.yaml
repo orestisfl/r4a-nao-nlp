@@ -1,0 +1,47 @@
+---
+automatically_extensible: true
+name: BodyMotionDirection
+type: entity
+values:
+  - [FORWARDS, forward, forwards, advance, advancing, along]
+  - [BACKWARDS, backtrace, backtracing, reverse, reversing, return, returning]
+  - LEFT
+  - RIGHT
+
+---
+automatically_extensible: true
+name: Distance
+type: entity
+needs_duckling: true
+values:
+  - 1 meter
+  - 2m
+  - 10cm
+  - 10 centimeters
+  - 5 miles
+  - 5 kilometers
+  - five meters
+  - ten centimeters
+  - one centimeter
+  - one kilometer
+  - five inches
+  - 5 inches
+  - 1 inch
+  - 6''
+
+---
+name: BodyMotion
+slots:
+  - entity: BodyMotionDirection
+    name: direction
+  - entity: Distance
+    name: distance
+  - entity: snips/duration
+    name: duration
+  - entity: Distance
+    name: speedNum
+  - entity: snips/duration
+    name: speedDen
+  - entity: Distance
+    name: safetyDistance
+type: intent

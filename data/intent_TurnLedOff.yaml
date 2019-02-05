@@ -1,0 +1,6 @@
+---
+name: TurnLedOff
+slots:
+  - entity: Led_Group
+    name: leds
+type: intent

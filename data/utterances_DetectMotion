@@ -1,0 +1,2 @@
+{Detect,Detecting,Scan for,Scanning for}{, a} motion {for [duration],[bDetectForever](forever),[bDetectForever](indefinitely)}
+{Enable,Activate,Enabling,Activating} guard mode {for [duration],[bDetectForever](forever),[bDetectForever](indefinitely)}

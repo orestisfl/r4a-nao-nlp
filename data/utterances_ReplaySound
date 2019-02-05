@@ -1,0 +1,3 @@
+{Play,Playing,Repeat,Replay,Repeating,Replaying}{, saved, recorded} {sound,sound named} [name]{,{ with a volume of,\, set volume to} {[volume],[volumePer]}}
+Set volume at {[volume],[volumePer]} and {replay,play,repeat} {, saved, recorded} {sound,sound named} [name]
+After setting volume at {[volume],[volumePer]}, {replay,play,repeat} {, saved, recorded} {sound,sound named} [name]

@@ -1,0 +1,10 @@
+---
+name: ReplaySound
+slots:
+  - entity: Name
+    name: name
+  - entity: snips/number
+    name: volume
+  - entity: snips/percentage
+    name: volumePer
+type: intent

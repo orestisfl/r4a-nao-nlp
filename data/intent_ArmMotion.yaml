@@ -1,0 +1,29 @@
+---
+automatically_extensible: true
+name: ArmMotionType
+type: entity
+values:
+  - [OFFER, offering]
+  - [UP, upwards, lift, lifting, raise, raising]
+  - [WAVE, waving]
+  - [EXTEND, extending, extended]
+  - [OPEN, spread, spreading, apart, wide]
+  - [CLOSE, closing, closed, clenched, clench, clenching, squeeze, squeezing]
+
+---
+automatically_extensible: false
+name: Arm
+type: entity
+values:
+  - LEFT
+  - RIGHT
+  - [BOTH, arms, hands]
+
+---
+name: ArmMotion
+slots:
+  - entity: ArmMotionType
+    name: armMotion
+  - entity: Arm
+    name: arm
+type: intent

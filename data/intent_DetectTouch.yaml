@@ -1,0 +1,10 @@
+---
+name: DetectTouch
+slots:
+  - entity: snips/duration
+    name: duration
+  - entity: BodyPart
+    name: part
+  - entity: DetectForever
+    name: bDetectForever
+type: intent

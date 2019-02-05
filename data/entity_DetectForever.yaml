@@ -1,0 +1,7 @@
+---
+automatically_extensible: true
+name: DetectForever
+type: entity
+values:
+  - ["TRUE", "forever", "indefinitely", "non-stop", "nonstop", "non stop"]
+  - "FALSE"

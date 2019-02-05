@@ -1,0 +1,16 @@
+---
+automatically_extensible: false
+name: Stance
+type: entity
+values:
+  - [STAND, standing]
+  - [SIT, sitting]
+  - [CROUCH, crouching]
+  - [ONBACK, back]
+
+---
+name: BodyStance
+slots:
+  - entity: Stance
+    name: stance
+type: intent

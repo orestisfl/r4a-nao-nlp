@@ -1,0 +1,21 @@
+---
+automatically_extensible: false
+name: Color
+type: entity
+values:
+  - WHITE
+  - RED
+  - GREEN
+  - BLUE
+  - YELLOW
+  - MAGENTA
+  - CYAN
+
+---
+name: TurnLedOn
+slots:
+  - entity: Led_Group
+    name: leds
+  - entity: Color
+    name: Color
+type: intent

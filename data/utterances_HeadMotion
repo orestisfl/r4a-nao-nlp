@@ -1,0 +1,7 @@
+{Move,Set,Moving,Setting}{, your} head{, direction} [direction]
+[direction](Restore,Restoring){ your,} head{, direction}
+[direction](Rise,Rising,Bow,Bowing,Incline,Inclining) {your,the} head
+{Turn,Rotate,Turning,Rotating}{, your} head{, 90 degrees}{, to the} [direction]({left,right})
+{Tilt,Tilting,Get,Getting,Put,Putting,Keep,Keeping}{, your} head [direction]({up,down})
+{Go back,Restore,Return,Going back,Restoring,Returning} to [direction]({neutral,default}) head position
+{Raise,Raising,Restore,Restoring,Turn,Turning,Put,Putting,Keep,Keeping,Rotate,Rotating,Move,Moving,Set,Setting}{ your,} head back to the [direction]({starting,initial,neutral,default}) position

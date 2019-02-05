@@ -1,0 +1,3 @@
+{Read,Reading,Say,Saying,Echo,Echoing} [text]{, in [language]({English,German}), using the [language]({English,German}) language}{,{ with a volume of,\, set volume to} {[volume],[volumePer]}}
+Set volume at {[volume],[volumePer]} and {read,say,echo} [text]{, in [language]({English,German}), using the [language]({English,German}) language}
+After setting volume at {[volume],[volumePer]}, {read,say,echo} [text]{, in [language]({English,German}), using the [language]({English,German}) language}

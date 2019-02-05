@@ -1,0 +1,18 @@
+---
+automatically_extensible: false
+name: SayOptions
+type: entity
+values:
+  - ["TRUE", "say", "saying", "echo", "echoing"]
+  - ["FALSE", "without"]
+
+---
+name: Listen
+slots:
+  - entity: snips/duration
+    name: duration
+  - entity: SayOptions
+    name: bSayOptions
+  - entity: DetectForever
+    name: bDetectForever
+type: intent

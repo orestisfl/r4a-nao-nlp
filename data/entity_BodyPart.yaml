@@ -1,0 +1,22 @@
+---
+automatically_extensible: true
+name: BodyPart
+type: entity
+values:
+  - ["RIGHT_HAND", "right hand"]
+  - ["LEFT_HAND", "left hand"]
+  - ["HEAD_BACK", "back of head", "back of your head"]
+  - [
+      "HEAD_MIDDLE",
+      "mid of your head",
+      "middle of your head",
+      "mid head",
+      "middle head",
+    ]
+  - ["HEAD_FRONT", "front head", "front of your head", "front of head"]
+  - ["RIGHT_FOOT", "right foot"]
+  - ["LEFT_FOOT", "left foot"]
+  - ["ANY_PART", "any", "any part of the body", "any body part", "anywhere"]
+  - ["HEAD", "any part of the head", "any head part"]
+  - ["FEET", "either foot"]
+  - ["HANDS", "either hand", "any hand"]

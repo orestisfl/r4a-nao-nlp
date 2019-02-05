@@ -1,0 +1,8 @@
+---
+name: LearnMotion
+slots:
+  - entity: Name
+    name: name
+  - entity: ListenForMotionName
+    name: bListenForMotionName
+type: intent

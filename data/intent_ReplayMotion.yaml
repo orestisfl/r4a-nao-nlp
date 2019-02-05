@@ -1,0 +1,6 @@
+---
+name: ReplayMotion
+slots:
+  - entity: Name
+    name: name
+type: intent

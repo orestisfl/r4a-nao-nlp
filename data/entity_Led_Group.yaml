@@ -1,0 +1,10 @@
+---
+automatically_extensible: false
+name: Led_Group
+type: entity
+values:
+  - [FEET_LEDS, feet, leg, legs]
+  - [CHEST_LEDS, chest]
+  - [FACE_LEDS, face]
+  - [EAR_LEDS, ear, ears]
+  - [ALL_LEDS, all]

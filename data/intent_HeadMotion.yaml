@@ -1,0 +1,17 @@
+---
+automatically_extensible: true
+name: HeadDirection
+type: entity
+values:
+  - LEFT
+  - RIGHT
+  - [UP, rise, rising]
+  - [DOWN, bow, bowing, incline, inclining]
+  - [NEUTRAL, restore, restoring, default, starting, initial]
+
+---
+name: HeadMotion
+slots:
+  - entity: HeadDirection
+    name: direction
+type: intent

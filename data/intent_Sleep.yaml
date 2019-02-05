@@ -1,0 +1,6 @@
+---
+name: Sleep
+slots:
+  - entity: snips/duration
+    name: duration
+type: intent

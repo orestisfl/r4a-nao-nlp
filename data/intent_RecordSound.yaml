@@ -1,0 +1,18 @@
+---
+automatically_extensible: true
+name: FinishWithTouch
+type: entity
+values:
+  - ["TRUE", "touched", "touch", "touches"]
+  - "FALSE"
+
+---
+name: RecordSound
+slots:
+  - entity: Name
+    name: name
+  - entity: snips/duration
+    name: duration
+  - entity: FinishWithTouch
+    name: bFinishWithTouch
+type: intent

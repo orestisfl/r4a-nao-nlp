@@ -1,0 +1,8 @@
+---
+name: DetectSound
+slots:
+  - entity: snips/duration
+    name: duration
+  - entity: DetectForever
+    name: bDetectForever
+type: intent
