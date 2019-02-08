@@ -161,14 +161,17 @@ class SubSentence:
         return result
 
     def include_token(self, token: "Token", modifiers: List["SubSentence"]) -> bool:
-        return (
-            token in self.verb
-            or any(token in span for span in self.args.values())
-            or (
-                any(token in span for span in self.argms.values())
-                and not any(other.include_token(token, []) for other in modifiers)
-            )
-        )
+        if token in self:
+            # token in this predicate-argument structure
+            return True
+        for span in self.argms.values():
+            if token in span:
+                # assume no overlap in self's ARGMs
+                break
+        else:
+            return False
+        # None of the passed modifier subsentences should include this span
+        return not any(span in other for other in modifiers)
 
     def text_connect(
         self, modifiers: List["SubSentence"], other: Optional["SubSentence"] = None
@@ -181,8 +184,18 @@ class SubSentence:
             # TODO: (Test) argms tokens should be printed if not in other.
             if not self.include_token(token, modifiers)
             and (other is None or not other.include_token(token, modifiers))
-            and not any(mod.include_token(token, []) for mod in modifiers)
+            and not any(token in mod for mod in modifiers)
         ]
+
+    def __contains__(self, item: object) -> bool:
+        from spacy.tokens.token import Token
+
+        if isinstance(item, Iterable):
+            return all(token in self for token in item)
+        if not isinstance(item, Token):
+            return False
+
+        return item in self.verb or any(item in span for span in self.args.values())
 
     def __str__(self):
         return " ".join(self.tags)
