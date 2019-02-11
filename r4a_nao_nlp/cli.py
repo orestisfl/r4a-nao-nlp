@@ -74,3 +74,9 @@ def calc_score(clauses: List[SnipsResult]) -> float:
     # return min((intent_clause(clause) for clause in clauses))
     # avg
     return sum((clause.score for clause in clauses)) / len(clauses)
+
+
+if __name__ == "__main__":
+    from r4a_nao_nlp import __main__
+
+    __main__.entry_point(__spec__.name)

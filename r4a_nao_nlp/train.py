@@ -109,3 +109,9 @@ def save_engine(engine: SnipsNLUEngine, path: str) -> None:
             path = os.path.join(tmp, "engine")
             engine.persist(path)
             archive.add(path, arcname="engine")
+
+
+if __name__ == "__main__":
+    from r4a_nao_nlp import __main__
+
+    __main__.entry_point(__spec__.name)
