@@ -37,9 +37,10 @@ setup(
     install_requires=[
         "spacy<=2.0.13",  # https://github.com/explosion/spaCy/issues/2852
         "allennlp",
-        "snips-nlu",
+        "snips-nlu>=0.19.1",
         "networkx",
     ],
+    python_requires=">=3.7",
     package_data={"r4a_nao_nlp": ["engine.tar.gz"]},
     author="Orestis Floros",
     author_email="orestisf1993@gmail.com",
@@ -48,7 +49,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/robotics-4-all/2017_B_NLP_robotics",
     classifiers=[
-        "Programming Language :: Python :: 3.6",  # snips-nlu needs python < 3.7
+        "Programming Language :: Python :: 3.7",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: Linux",
     ],

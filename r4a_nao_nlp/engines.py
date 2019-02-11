@@ -1,5 +1,7 @@
 # TODO: docstrings
 # vim:ts=4:sw=4:expandtab:fo-=t
+from __future__ import annotations
+
 import datetime
 import os
 import tarfile
@@ -110,7 +112,7 @@ class Shared:
         logger.debug("Passing '%s' to snips engine", s)
         return SnipsResult(self.engine.parse(s))
 
-    def srl(self, s: str) -> "JsonDict":
+    def srl(self, s: str) -> JsonDict:
         assert self.srl_predictor
 
         # TODO: just lru cache
@@ -118,7 +120,7 @@ class Shared:
         self.srl_cache[s] = r
         return r
 
-    def spacy(self, s: str) -> "Doc":
+    def spacy(self, s: str) -> Doc:
         assert self._spacy
 
         # TODO: find a better way to deal with problems with whitespace.
@@ -128,7 +130,7 @@ class Shared:
         logger.debug("Passing '%s' to spacy", s)
         return self._spacy(s)
 
-    def coref(self, s: str) -> Union["Doc", "JsonDict"]:
+    def coref(self, s: str) -> Union[Doc, JsonDict]:
         if self.neuralcoref:
             return self.neuralcoref(s)
         else:
@@ -145,7 +147,7 @@ class SnipsResult(tuple):
 
     __slots__ = []
 
-    def __new__(cls, parsed: Optional["JsonDict"] = None):
+    def __new__(cls, parsed: Optional[JsonDict] = None):
         if (
             parsed is None
             or parsed["intent"] is None
@@ -190,7 +192,7 @@ class SnipsSlot(tuple):
 
     __slots__ = []
 
-    def __new__(cls, parsed: "JsonDict"):
+    def __new__(cls, parsed: JsonDict):
         r = range(parsed["range"]["start"], parsed["range"]["end"])
         value = _resolve_value(parsed["value"])
         return tuple.__new__(cls, (r, value, parsed["entity"], parsed["slotName"]))
@@ -212,7 +214,7 @@ class SnipsSlot(tuple):
         return "{}={}".format(self.name, self.value)
 
 
-def _resolve_value(value: "JsonDict") -> Union[datetime.timedelta, float, str]:
+def _resolve_value(value: JsonDict) -> Union[datetime.timedelta, float, str]:
     # https://github.com/snipsco/snips-nlu-ontology#grammar-entity
     if value["kind"] == "Duration":
         return _resolve_duration(value)
@@ -224,7 +226,7 @@ def _resolve_value(value: "JsonDict") -> Union[datetime.timedelta, float, str]:
     return value["value"]
 
 
-def _resolve_duration(value: "JsonDict") -> datetime.timedelta:
+def _resolve_duration(value: JsonDict) -> datetime.timedelta:
     """Convert the parsed value of a snips/duration entity to a datetime timedelta.
 
     Months and years are converted to their average length in seconds in the Gregorian

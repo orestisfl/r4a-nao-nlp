@@ -1,5 +1,7 @@
 # TODO: docstrings
 # vim:ts=4:sw=4:expandtab:fo-=t
+from __future__ import annotations
+
 from functools import reduce
 from itertools import combinations, permutations
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set, Tuple
@@ -16,22 +18,22 @@ logger = utils.create_logger(__name__)
 
 
 class SubSentence:
-    def __init__(self, tags: List[str], sent: "Span"):
+    def __init__(self, tags: List[str], sent: Span):
         logger.debug("Creating subsentence %d from tags %s", id(self), tags)
 
         self.tags = tags
         self.sent = sent
 
-        self.verb: "Span" = None
+        self.verb: Span = None
         # XXX: these can be simple lists instead of dictionaries
-        self.args: Dict[str, "Span"] = {}
-        self.argms: Dict[str, "Span"] = {}
+        self.args: Dict[str, Span] = {}
+        self.argms: Dict[str, Span] = {}
         self._parse_tags(tags)
         assert self.verb
 
-        self.modifiers: Dict["SubSentence", Tuple["Span", "Span"]] = {}
-        self.modifying: Dict["SubSentence", Tuple["Span", "Span"]] = {}
-        self.compatible: Set["SubSentence"] = set()
+        self.modifiers: Dict[SubSentence, Tuple[Span, Span]] = {}
+        self.modifying: Dict[SubSentence, Tuple[Span, Span]] = {}
+        self.compatible: Set[SubSentence] = set()
         self.parsed: Optional[SnipsResult] = None
 
         logger.debug(
@@ -76,7 +78,7 @@ class SubSentence:
             assert tag.startswith("ARG")
             self.args[tag] = span
 
-    def relate(self, other: "SubSentence") -> None:
+    def relate(self, other: SubSentence) -> None:
         if self.is_compatible(other):
             self.compatible.add(other)
         else:
@@ -88,12 +90,12 @@ class SubSentence:
                 # Assuming only one possible intersection between modifiers and verb range.
                 return
 
-    def is_compatible(self, other: "SubSentence") -> bool:
+    def is_compatible(self, other: SubSentence) -> bool:
         return not span_search(other.verb, *self.args.values()) and not span_search(
             self.verb, other.verb, *other.args.values()
         )
 
-    def parse(self, others: Optional[List["SubSentence"]] = None) -> "JsonDict":
+    def parse(self, others: Optional[List[SubSentence]] = None) -> JsonDict:
         tokens = list(
             filter(
                 lambda x: self.include_token(
@@ -110,7 +112,7 @@ class SubSentence:
         self.parsed = max(shared.parse(s) for s in self._coref_combinations(tokens))
         return self.parsed
 
-    def _coref_combinations(self, tokens: List["Token"]) -> Set[str]:
+    def _coref_combinations(self, tokens: List[Token]) -> Set[str]:
         # TODO: explain like coref_resolved etc
 
         base_tokens = tuple(token.text_with_ws for token in tokens)  # TODO:rename
@@ -160,7 +162,7 @@ class SubSentence:
                 result.add("".join(resolved))
         return result
 
-    def include_token(self, token: "Token", modifiers: List["SubSentence"]) -> bool:
+    def include_token(self, token: Token, modifiers: List[SubSentence]) -> bool:
         if token in self:
             # token in this predicate-argument structure
             return True
@@ -174,8 +176,8 @@ class SubSentence:
         return not any(span in other for other in modifiers)
 
     def text_connect(
-        self, modifiers: List["SubSentence"], other: Optional["SubSentence"] = None
-    ) -> List["Token"]:
+        self, modifiers: List[SubSentence], other: Optional[SubSentence] = None
+    ) -> List[Token]:
         start = self.verb.end
         end = other.verb.start if other else None
         return [
@@ -214,9 +216,9 @@ class SubSentence:
 class Combination:
     def __init__(self, subsentences: Iterable[SubSentence]):
         self.subsentences: List[SubSentence] = sorted(subsentences)
-        self.sent: "Span" = self.subsentences[0].sent
+        self.sent: Span = self.subsentences[0].sent
         self._compatible: Optional[bool] = None
-        self._parsed: Optional[List["JsonDict"]] = None
+        self._parsed: Optional[List[JsonDict]] = None
 
         assert all(
             subsentence.sent == self.sent for subsentence in self.subsentences[1:]
@@ -237,14 +239,14 @@ class Combination:
         return True
 
     @property
-    def parsed(self) -> List["JsonDict"]:
+    def parsed(self) -> List[JsonDict]:
         if self._parsed is None:
             self._parsed = [
                 subsentence.parse(others=self.subsentences) for subsentence in self
             ]
         return self._parsed
 
-    def to_graph(self) -> "Graph":
+    def to_graph(self) -> Graph:
         from r4a_nao_nlp.graph import Graph
 
         modifiers = [
@@ -310,7 +312,7 @@ class Combination:
         return ", ".join(str(s) for s in self)
 
 
-def span_intersect(*spans: "Span") -> Optional["Span"]:
+def span_intersect(*spans: Span) -> Optional[Span]:
     if spans:
         doc = spans[0].doc
         result = reduce(
@@ -320,7 +322,7 @@ def span_intersect(*spans: "Span") -> Optional["Span"]:
     return None
 
 
-def span_search(value: "Span", *spans: "Span") -> Optional["Span"]:
+def span_search(value: Span, *spans: Span) -> Optional[Span]:
     for span2 in spans:
         inter = span_intersect(value, span2)
         if inter:
@@ -328,7 +330,7 @@ def span_search(value: "Span", *spans: "Span") -> Optional["Span"]:
     return None
 
 
-def create_combinations(sent: "Span") -> List[Combination]:
+def create_combinations(sent: Span) -> List[Combination]:
     result = shared.srl(str(sent))
     logger.debug(
         "SRL (descriptions): %s",
@@ -341,7 +343,7 @@ def create_combinations(sent: "Span") -> List[Combination]:
     return list(create_combinations_from_subsentences(subsentences))
 
 
-def create_subsentences(all_tags: List[List[str]], sent: "Span") -> List[SubSentence]:
+def create_subsentences(all_tags: List[List[str]], sent: Span) -> List[SubSentence]:
     # TODO: configurable threshold
     subsentences = list(
         filter(

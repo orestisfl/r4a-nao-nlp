@@ -1,14 +1,14 @@
 # TODO: docstring
 # vim:ts=4:sw=4:expandtab:fo-=t
-def enter_cli_main():
+def enter_cli_main() -> None:
     entry_point("r4a_nao_nlp.cli")
 
 
-def enter_train_main():
+def enter_train_main() -> None:
     entry_point("r4a_nao_nlp.train")
 
 
-def entry_point(main_module: str):
+def entry_point(main_module: str) -> None:
     import importlib
     import sys
 

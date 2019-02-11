@@ -1,5 +1,7 @@
 # TODO: docstrings
 # vim:ts=4:sw=4:expandtab:fo-=t
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, List
 
 from r4a_nao_nlp import subsentence, utils
@@ -8,6 +10,7 @@ from r4a_nao_nlp.graph import Graph
 
 if TYPE_CHECKING:
     from r4a_nao_nlp.typing import Doc
+    from r4a_nao_nlp.engines import SnipsResult
 
 logger = utils.create_logger(__name__)
 
@@ -36,7 +39,7 @@ def parse_command_line(argv: List[str]) -> None:
     parser.parse_args(argv)
 
 
-def process_document(doc: "Doc") -> None:
+def process_document(doc: Doc) -> None:
     for sent in doc.sents:
         logger.debug("Processing sent: %s", str(sent))
 
@@ -60,7 +63,7 @@ def process_document(doc: "Doc") -> None:
         g.plot(str(sent) + ("." if str(sent[-1]) != "." else "") + "pdf")
 
 
-def calc_score(clauses: List["JsonDict"]) -> float:
+def calc_score(clauses: List[SnipsResult]) -> float:
     assert clauses
 
     # XXX: alternative scoring strategies

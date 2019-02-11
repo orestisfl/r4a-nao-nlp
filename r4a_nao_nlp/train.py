@@ -1,4 +1,7 @@
-# TODO: lists with snips
+# TODO: docstrings
+# vim:ts=4:sw=4:expandtab:fo-=t
+from __future__ import annotations
+
 import json
 import os
 import shutil
@@ -86,7 +89,7 @@ def expand_file(f: TextIO) -> Iterator[str]:
                 yield line
 
 
-def load_dataset(original: str, converted: str) -> "JsonDict":
+def load_dataset(original: str, converted: str) -> JsonDict:
     intents = glob(os.path.join(converted, "intent") + "*")
     dataset = Dataset.from_files("en", intents).json
     entities = os.path.join(original, "entities.json")
@@ -95,7 +98,7 @@ def load_dataset(original: str, converted: str) -> "JsonDict":
     return dataset
 
 
-def json_save(json_dict: "JsonDict", filename: str) -> None:
+def json_save(json_dict: JsonDict, filename: str) -> None:
     with open(filename, "w") as f:
         print(json.dumps(json_dict, indent=4, sort_keys=True), file=f)
 

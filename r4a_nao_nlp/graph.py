@@ -1,11 +1,13 @@
 # TODO: docstrings
 # vim:ts=4:sw=4:expandtab:fo-=t
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Dict, List
 
 import networkx as nx
 
 if TYPE_CHECKING:
-    from r4a_nao_nlp.typing import JsonDict, Token
+    from r4a_nao_nlp.typing import Token
 
 
 class Graph(nx.Graph):
@@ -64,7 +66,7 @@ class Graph(nx.Graph):
         return node_collection, edge_collection
 
 
-def _data_label(data: Dict[str, List["Token"]]) -> str:
+def _data_label(data: Dict[str, List[Token]]) -> str:
     return (
         "".join(t.text_with_ws for t in data["label"]).strip()
         if "label" in data
