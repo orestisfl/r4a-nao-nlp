@@ -110,7 +110,9 @@ class Shared:
         assert self.engine
 
         logger.debug("Passing '%s' to snips engine", s)
-        return SnipsResult(self.engine.parse(s))
+        result = SnipsResult(self.engine.parse(s))
+        logger.debug("Result = '%s'", result)
+        return result
 
     def srl(self, s: str) -> JsonDict:
         assert self.srl_predictor
