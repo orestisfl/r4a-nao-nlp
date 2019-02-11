@@ -1,6 +1,15 @@
 #!/usr/bin/env python
 import os
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
+
+
+def extras_add_all(extras):
+    extras["all"] = sorted(
+        set(package for package_list in extras.values() for package in package_list)
+    )
+    return extras
+
 
 if os.getenv("DOWNLOAD_NEURALCOREF"):
     import atexit
@@ -40,6 +49,12 @@ setup(
         "snips-nlu>=0.19.1",
         "networkx",
     ],
+    extras_require=extras_add_all(
+        {
+            "plots": ["matplotlib", "adjustText"],
+            "ecore": ["pyecore", "PyYAML", "braceexpand"],
+        }  # TODO: braceexpand for train
+    ),
     python_requires=">=3.7",
     package_data={"r4a_nao_nlp": ["engine.tar.gz"]},
     author="Orestis Floros",
@@ -57,6 +72,7 @@ setup(
         "console_scripts": [
             "r4a_nao_nlp = r4a_nao_nlp.__main__:enter_cli_main",
             "r4a_nao_nlp_train = r4a_nao_nlp.__main__:enter_train_main",
+            "r4a_nao_nlp_generate_yaml = r4a_nao_nlp.__main__:enter_generate_yaml",
         ]
     },
 )

@@ -42,6 +42,7 @@ class ArgumentParser(argparse.ArgumentParser):
             default=0,
             help="increases log verbosity for each occurence.",
         )
+        self._ecore_dest = None
 
     def parse_args(self, *args, **kwargs):
         namespace = super().parse_args(*args, **kwargs)
@@ -50,4 +51,15 @@ class ArgumentParser(argparse.ArgumentParser):
         _logging_handler.setLevel(level)
         logging.root.setLevel(level)
 
+        if self._ecore_dest:
+            from r4a_nao_nlp.ecore import init_root
+
+            init_root(getattr(namespace, self._ecore_dest))
+
         return namespace
+
+    def add_ecore_root_argument(self, *args, **kwargs):
+        kwargs.setdefault("default", "highLevelNaoApp.ecore")
+        kwargs.setdefault("help", "Path to the root Ecore meta-model")
+
+        self._ecore_dest = self.add_argument(*args, **kwargs).dest

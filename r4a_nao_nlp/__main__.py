@@ -8,6 +8,10 @@ def enter_train_main() -> None:
     entry_point("r4a_nao_nlp.train")
 
 
+def enter_generate_yaml() -> None:
+    entry_point("r4a_nao_nlp.ecore")
+
+
 def entry_point(main_module: str) -> None:
     import importlib
     import sys

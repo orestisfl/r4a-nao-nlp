@@ -37,6 +37,7 @@ def main(argv: List[str]) -> int:
 
 def parse_command_line(argv: List[str]) -> None:
     parser = utils.ArgumentParser()
+    parser.add_ecore_root_argument("-r", "--ecore-path")
     parser.parse_args(argv)
 
 
@@ -62,6 +63,10 @@ def process_document(doc: Doc) -> None:
         else:
             g = combinations[max_idx].to_graph()
         g.plot(str(sent) + ("." if str(sent[-1]) != "." else "") + "pdf")
+
+        for node in g.nodes:
+            if node is not None:
+                print(node.parsed.to_eobject())
 
 
 def calc_score(clauses: List[SnipsResult]) -> float:
