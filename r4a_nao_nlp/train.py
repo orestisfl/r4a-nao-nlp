@@ -1,23 +1,23 @@
 # TODO: lists with snips
-import argparse
 import json
 import os
 import shutil
 import tarfile
+from argparse import Namespace
 from glob import glob
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Iterator, List
 from typing.io import TextIO
 
 from braceexpand import braceexpand
-from r4a_nao_nlp import logging
+from r4a_nao_nlp import utils
 from snips_nlu import SnipsNLUEngine, load_resources
 from snips_nlu.dataset import Dataset
 
 if TYPE_CHECKING:
     from r4a_nao_nlp.typing import JsonDict
 
-logger = logging.get_logger(__name__)
+logger = utils.create_logger(__name__)
 
 
 def main(argv: List[str]) -> None:
@@ -36,15 +36,8 @@ def main(argv: List[str]) -> None:
     save_engine(engine, arguments.out_engine)
 
 
-def parse_command_line(argv: List[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="count",
-        default=0,
-        help="increases log verbosity for each occurence.",
-    )
+def parse_command_line(argv: List[str]) -> Namespace:
+    parser = utils.ArgumentParser()
     parser.add_argument(
         "-d",
         "--data",
@@ -58,10 +51,6 @@ def parse_command_line(argv: List[str]) -> argparse.Namespace:
         help="Where to store the fitted Snips engine.",
     )
     arguments = parser.parse_args(argv)
-
-    log_level = max(3 - arguments.verbose, 0) * 10
-    logging.set_level(log_level)
-    logger.debug("Set log level to %d", log_level)
 
     return arguments
 

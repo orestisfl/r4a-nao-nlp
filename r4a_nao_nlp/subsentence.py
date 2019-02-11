@@ -4,7 +4,7 @@ from functools import reduce
 from itertools import combinations, permutations
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set, Tuple
 
-from r4a_nao_nlp import logging
+from r4a_nao_nlp import utils
 from r4a_nao_nlp.engines import shared
 
 if TYPE_CHECKING:
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from r4a_nao_nlp.graph import Graph
     from r4a_nao_nlp.engines import SnipsResult
 
-logger = logging.get_logger(__name__)
+logger = utils.create_logger(__name__)
 
 
 class SubSentence:

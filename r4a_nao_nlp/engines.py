@@ -8,12 +8,12 @@ from operator import itemgetter
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Optional, Union
 
-from r4a_nao_nlp import logging
+from r4a_nao_nlp import utils
 
 if TYPE_CHECKING:
     from r4a_nao_nlp.typing import JsonDict, Doc
 
-logger = logging.get_logger(__name__)
+logger = utils.create_logger(__name__)
 # XXX: Can use pkg_resources to find distributed resources:
 # https://setuptools.readthedocs.io/en/latest/pkg_resources.html
 HERE = os.path.abspath(os.path.dirname(__file__))

@@ -1,16 +1,15 @@
 # TODO: docstrings
 # vim:ts=4:sw=4:expandtab:fo-=t
-import argparse
 from typing import TYPE_CHECKING, List
 
-from r4a_nao_nlp import logging, subsentence
+from r4a_nao_nlp import subsentence, utils
 from r4a_nao_nlp.engines import shared
 from r4a_nao_nlp.graph import Graph
 
 if TYPE_CHECKING:
     from r4a_nao_nlp.typing import Doc
 
-logger = logging.get_logger(__name__)
+logger = utils.create_logger(__name__)
 
 
 def main(argv: List[str]) -> int:
@@ -33,19 +32,8 @@ def main(argv: List[str]) -> int:
 
 
 def parse_command_line(argv: List[str]) -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="count",
-        default=0,
-        help="increases log verbosity for each occurence.",
-    )
-    arguments = parser.parse_args(argv)
-
-    log_level = max(3 - arguments.verbose, 0) * 10
-    logging.set_level(log_level)
-    logger.debug("Set log level to %d", log_level)
+    parser = utils.ArgumentParser()
+    parser.parse_args(argv)
 
 
 def process_document(doc: "Doc") -> None:

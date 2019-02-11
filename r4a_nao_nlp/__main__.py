@@ -12,9 +12,9 @@ def entry_point(main_module: str):
     import importlib
     import sys
 
-    from r4a_nao_nlp import logging
+    from r4a_nao_nlp import utils
 
-    logging.init()
+    utils.init_logging()
 
     main = importlib.import_module(main_module).main
     sys.exit(main(sys.argv))
