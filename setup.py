@@ -53,7 +53,8 @@ setup(
         {
             "plots": ["matplotlib", "adjustText"],
             "ecore": ["pyecore", "PyYAML", "braceexpand"],
-        }  # TODO: braceexpand for train
+            "train": ["braceexpand"],  # snips-nlu-en
+        }
     ),
     python_requires=">=3.7",
     package_data={"r4a_nao_nlp": ["engine.tar.gz"]},
