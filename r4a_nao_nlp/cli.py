@@ -2,6 +2,7 @@
 # vim:ts=4:sw=4:expandtab:fo-=t
 from __future__ import annotations
 
+from operator import itemgetter
 from typing import TYPE_CHECKING, List
 
 from r4a_nao_nlp import subsentence, utils
@@ -48,7 +49,7 @@ def process_document(doc: Doc) -> None:
         logger.debug("Final combinations: %s", ", ".join(str(c) for c in combinations))
         if combinations:
             scores = [calc_score(c.parsed) for c in combinations]
-            max_idx = max(enumerate(scores), key=lambda x: x[1])[0]
+            max_idx = max(enumerate(scores), key=itemgetter(1))[0]
 
         simple = shared.parse(str(sent))
         # TODO: modifier? configurable?
