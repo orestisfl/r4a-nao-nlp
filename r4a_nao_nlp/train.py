@@ -28,9 +28,8 @@ def main(argv: List[str]) -> None:
 
     original = arguments.data
     converted = convert_data(original)
-    dataset = load_dataset(original, converted)
+    dataset = load_dataset(converted)
 
-    json_save(dataset["entities"], os.path.join(original, "entities.json"))
     json_save(dataset, os.path.join(converted, "dataset.json"))
 
     load_resources("en")
@@ -45,7 +44,7 @@ def parse_command_line(argv: List[str]) -> Namespace:
         "-d",
         "--data",
         default="data",
-        help="Data folder which contains entities.json and intent files.",
+        help="Data folder which contains the intent files.",
     )
     parser.add_argument(
         "-o",
@@ -59,6 +58,7 @@ def parse_command_line(argv: List[str]) -> Namespace:
 
 
 def convert_data(src: str) -> str:
+    # TODO: dest should be a TemporaryDirectory if not configured.
     src = src.strip("/")
     dest = src + "-converted"
     try:
@@ -68,17 +68,30 @@ def convert_data(src: str) -> str:
         logger.debug("Dest %s did not exist", dest)
     os.makedirs(dest)
 
-    expand_braces(src, dest)
-    return dest
-
-
-def expand_braces(src: str, dest: str) -> None:
-    intents = glob(os.path.join(src, "intent") + "*")
-    for filename in intents:
+    utterance_files = glob(os.path.join(src, "utterances_*"))
+    for filename in utterance_files:
+        intent_basename = "intent_{intent_name}.yaml".format(
+            intent_name=os.path.basename(filename).split("_")[1]
+        )
+        with open(os.path.join(src, intent_basename)) as f:
+            # XXX: assert that the intent is the last yaml "document" in the file and we
+            # only need to append the "utterances:" key to it. Otherwise, we could use a
+            # YAML library.
+            base_yaml = f.read().strip() + "\nutterances:"
         with open(filename) as f:
-            result = "\n".join(expand_file(f))
-        with open(os.path.join(dest, os.path.basename(filename)), "w") as f:
-            print(result, file=f, end="")
+            expanded_utterances = "\n".join(
+                str('  - "') + line + '"' for line in expand_file(f)
+            )
+        with open(os.path.join(dest, intent_basename), "w") as f:
+            print(base_yaml, file=f)
+            print(expanded_utterances, file=f)
+
+    # Copy entity yaml files to destination so that the dataset can be generated from
+    # that folder only.
+    for filename in glob(os.path.join(src, "entity_*")):
+        shutil.copy(filename, os.path.join(dest, os.path.basename(filename)))
+
+    return dest
 
 
 def expand_file(f: TextIO) -> Iterator[str]:
@@ -89,13 +102,9 @@ def expand_file(f: TextIO) -> Iterator[str]:
                 yield line
 
 
-def load_dataset(original: str, converted: str) -> JsonDict:
-    intents = glob(os.path.join(converted, "intent") + "*")
-    dataset = Dataset.from_files("en", intents).json
-    entities = os.path.join(original, "entities.json")
-    with open(entities) as f:
-        dataset["entities"].update(json.load(f))
-    return dataset
+def load_dataset(converted: str) -> JsonDict:
+    filenames = glob(os.path.join(converted, "*.yaml"))
+    return Dataset.from_yaml_files("en", filenames).json
 
 
 def json_save(json_dict: JsonDict, filename: str) -> None:
