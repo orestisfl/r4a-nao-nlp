@@ -316,3 +316,6 @@ def test_graph_multiple_argms_negation():
     assert len(adj) == 3
     assert cmp_tokens_to_words(adj[None]["label"], ".")
     assert cmp_tokens_to_words(adj[s[2]]["label"], "while", "not")
+
+
+# vim:ts=4:sw=4:expandtab:fo-=t:tw=88

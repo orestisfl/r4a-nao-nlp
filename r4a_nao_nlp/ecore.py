@@ -1,5 +1,4 @@
 # TODO: docstrings
-# vim:ts=4:sw=4:expandtab:fo-=t
 from __future__ import annotations
 
 import os
@@ -188,3 +187,5 @@ if __name__ == "__main__":
     from r4a_nao_nlp import __main__
 
     __main__.entry_point(__spec__.name)
+
+# vim:ts=4:sw=4:expandtab:fo-=t:tw=88

@@ -1,5 +1,4 @@
 """Common operations relating to logging and argument parsing."""
-# vim:ts=4:sw=4:expandtab:fo-=t
 import argparse
 import logging
 
@@ -62,3 +61,6 @@ class ArgumentParser(argparse.ArgumentParser):
         kwargs.setdefault("help", "Path to the root Ecore meta-model")
 
         self._ecore_dest = self.add_argument(*args, **kwargs).dest
+
+
+# vim:ts=4:sw=4:expandtab:fo-=t:tw=88

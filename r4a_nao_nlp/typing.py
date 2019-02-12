@@ -3,7 +3,6 @@
 Contains various commonly used types. Can be used in combination with
 typing.TYPE_CHECKING to avoid loading spacy early.
 """
-# vim:ts=4:sw=4:expandtab:fo-=t
 from typing import Any, Dict
 
 from spacy.tokens.doc import Doc
@@ -14,3 +13,5 @@ from spacy.tokens.token import Token
 # to an eobject.
 # TODO: unique type for SNIPS parse result to distinguish
 JsonDict = Dict[str, Any]
+
+# vim:ts=4:sw=4:expandtab:fo-=t:tw=88

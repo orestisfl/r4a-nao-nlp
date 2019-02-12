@@ -1,5 +1,4 @@
 # TODO: docstrings
-# vim:ts=4:sw=4:expandtab:fo-=t
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Dict, List
@@ -72,3 +71,6 @@ def _data_label(data: Dict[str, List[Token]]) -> str:
         if "label" in data
         else ""
     )
+
+
+# vim:ts=4:sw=4:expandtab:fo-=t:tw=88

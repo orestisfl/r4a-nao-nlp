@@ -1,5 +1,4 @@
 # TODO: docstrings
-# vim:ts=4:sw=4:expandtab:fo-=t
 from __future__ import annotations
 
 import datetime
@@ -252,3 +251,6 @@ def _resolve_duration(value: JsonDict) -> datetime.timedelta:
         # 365.2425 days * 24 hours * 3600 seconds
         + 31_557_600 * value["years"],
     )
+
+
+# vim:ts=4:sw=4:expandtab:fo-=t:tw=88

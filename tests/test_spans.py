@@ -34,3 +34,6 @@ def test_search():
     assert span_search(doc[1:3], doc[4:5], doc[6:7], doc[1:3]) == doc[1:3]
     assert span_search(doc[1:3], doc[4:5], doc[6:7], doc[0:2]) == doc[1:2]
     assert span_search(doc[1:3], doc[4:5], doc[6:7]) is None
+
+
+# vim:ts=4:sw=4:expandtab:fo-=t:tw=88

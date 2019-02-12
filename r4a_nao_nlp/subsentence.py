@@ -1,5 +1,4 @@
 # TODO: docstrings
-# vim:ts=4:sw=4:expandtab:fo-=t
 from __future__ import annotations
 
 from functools import partial, reduce
@@ -376,3 +375,6 @@ def create_combinations_from_subsentences(
                 if all(contains.values()):
                     # XXX: do we return too early here?
                     return
+
+
+# vim:ts=4:sw=4:expandtab:fo-=t:tw=88
