@@ -248,7 +248,7 @@ def _resolve_duration(value: JsonDict) -> datetime.timedelta:
         + 60 * (value["minutes"] + 15 * value["quarters"])
         + 3600 * value["hours"]
         # 30.436875 days * 24 hours * 3600 seconds
-        + 2629746 * value["months"]
+        + 2_629_746 * value["months"]
         # 365.2425 days * 24 hours * 3600 seconds
-        + 31557600 * value["years"],
+        + 31_557_600 * value["years"],
     )
