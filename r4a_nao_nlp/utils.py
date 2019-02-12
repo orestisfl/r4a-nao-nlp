@@ -21,10 +21,9 @@ def create_logger(name: str) -> logging.Logger:
     """Create logger, adding the common handler."""
     if name is None:
         raise TypeError("name is None")
-    if name in logging.root.manager.loggerDict:
-        raise ValueError("logger already exists")
 
     logger = logging.getLogger(name)
+    # Should be unique
     logger.addHandler(_logging_handler)
     return logger
 
