@@ -13,12 +13,10 @@ from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Iterator, List, Optional
 from typing.io import TextIO
 
-from braceexpand import braceexpand
 from r4a_nao_nlp import utils
-from snips_nlu import SnipsNLUEngine, load_resources
-from snips_nlu.dataset import Dataset
 
 if TYPE_CHECKING:
+    from snips_nlu import SnipsNLUEngine
     from r4a_nao_nlp.typing import JsonDict
 
 logger = utils.create_logger(__name__)
@@ -33,8 +31,10 @@ def main(argv: List[str]) -> None:
 
         json_save(dataset, os.path.join(converted, "dataset.json"))
 
-    load_resources("en")
-    engine = SnipsNLUEngine()
+    import snips_nlu
+
+    snips_nlu.load_resources("en")
+    engine = snips_nlu.SnipsNLUEngine()
     engine.fit(dataset)
     save_engine(engine, arguments.out_engine)
 
@@ -111,6 +111,8 @@ def convert_data(src: str, dest: str) -> str:
 
 
 def expand_file(f: TextIO) -> Iterator[str]:
+    from braceexpand import braceexpand
+
     for line in f:
         for line in braceexpand(line):
             line = line.strip()
@@ -119,6 +121,8 @@ def expand_file(f: TextIO) -> Iterator[str]:
 
 
 def load_dataset(converted: str) -> JsonDict:
+    from snips_nlu.dataset import Dataset
+
     filenames = glob(os.path.join(converted, "*.yaml"))
     return Dataset.from_yaml_files("en", filenames).json
 
