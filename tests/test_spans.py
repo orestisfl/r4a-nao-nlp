@@ -1,4 +1,5 @@
 import spacy
+
 from r4a_nao_nlp.subsentence import span_intersect, span_search
 
 doc = spacy.load("en_core_web_sm")("The quick brown fox jumps over the lazy dog")

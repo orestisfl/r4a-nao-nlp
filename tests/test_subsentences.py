@@ -3,11 +3,12 @@ from typing import List, Optional
 from unittest.mock import Mock
 
 import networkx as nx
+from spacy.tokens.span import Span
+from spacy.tokens.token import Token
+
 from r4a_nao_nlp import subsentence
 from r4a_nao_nlp.engines import shared
 from r4a_nao_nlp.graph import Graph
-from spacy.tokens.span import Span
-from spacy.tokens.token import Token
 
 # We only need spacy
 shared.init(
