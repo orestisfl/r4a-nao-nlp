@@ -7,9 +7,10 @@ import os
 import shutil
 import tarfile
 from argparse import Namespace
+from contextlib import contextmanager
 from glob import glob
 from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING, Iterator, List
+from typing import TYPE_CHECKING, Iterator, List, Optional
 from typing.io import TextIO
 
 from braceexpand import braceexpand
@@ -26,11 +27,11 @@ logger = utils.create_logger(__name__)
 def main(argv: List[str]) -> None:
     arguments = parse_command_line(argv[1:])
 
-    original = arguments.data
-    converted = convert_data(original)
-    dataset = load_dataset(converted)
+    with dest_context_manager(arguments.dest) as converted:
+        convert_data(src=arguments.data, dest=converted)
+        dataset = load_dataset(converted)
 
-    json_save(dataset, os.path.join(converted, "dataset.json"))
+        json_save(dataset, os.path.join(converted, "dataset.json"))
 
     load_resources("en")
     engine = SnipsNLUEngine()
@@ -47,6 +48,15 @@ def parse_command_line(argv: List[str]) -> Namespace:
         help="Data folder which contains the intent files.",
     )
     parser.add_argument(
+        "--out-converted",
+        default=None,
+        help=(
+            "Where to save the final data used to train the Snips engine. By default, a "
+            "temporary directory is used and the files are deleted after being used."
+        ),
+        dest="dest",
+    )
+    parser.add_argument(
         "-o",
         "--out-engine",
         default="engine.tar.gz",
@@ -57,17 +67,23 @@ def parse_command_line(argv: List[str]) -> Namespace:
     return arguments
 
 
-def convert_data(src: str) -> str:
-    # TODO: dest should be a TemporaryDirectory if not configured.
-    src = src.strip("/")
-    dest = src + "-converted"
-    try:
-        shutil.rmtree(dest)
-        logger.info("Deleted existing destination directory %s", dest)
-    except FileNotFoundError:
-        logger.debug("Dest %s did not exist", dest)
-    os.makedirs(dest)
+@contextmanager
+def dest_context_manager(dest: Optional[str]) -> Iterator[str]:
+    if dest is None:
+        with TemporaryDirectory() as tmp:
+            yield tmp
+    else:
+        try:
+            shutil.rmtree(dest)
+            logger.info("Deleted existing destination directory %s", dest)
+        except FileNotFoundError:
+            logger.debug("Dest %s did not exist", dest)
+        os.makedirs(dest)
 
+        yield dest
+
+
+def convert_data(src: str, dest: str) -> str:
     utterance_files = glob(os.path.join(src, "utterances_*"))
     for filename in utterance_files:
         intent_basename = "intent_{intent_name}.yaml".format(
