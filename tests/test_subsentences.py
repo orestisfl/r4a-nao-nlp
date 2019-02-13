@@ -92,16 +92,6 @@ def test_incompatible():
     assert all(sub.modifiers == {} for sub in s)
 
 
-def mock_srl(all_tags: List[List[str]], sent: Span) -> Mock:
-    """Return a mock object to be used in place of actual semantic role labeling."""
-    return Mock(
-        return_value={
-            "words": [str(token) for token in sent],
-            "verbs": [{"tags": tags, "description": "mock"} for tags in all_tags],
-        }
-    )
-
-
 def test_single_combination():
     all_tags = [
         ["B-V", "O", "O", "O", "B-ARGM-TMP", "I-ARGM-TMP"],
@@ -109,8 +99,8 @@ def test_single_combination():
         ["O", "O", "O", "O", "O", "B-V"],
     ]
     sent = create_spacy_sent(6)
-    shared.srl = mock_srl(all_tags, sent)
-    c = subsentence.create_combinations(sent)
+    s = subsentence.create_subsentences(all_tags, sent)
+    c = list(subsentence.create_combinations_from_subsentences(s))
 
     assert len(c) == 1
     assert len(c[0]) == 3
@@ -125,8 +115,8 @@ def test_two_combinations():
         ["O", "B-V", "O", "O", "O", "O"],
     ]
     sent = create_spacy_sent(6)
-    shared.srl = mock_srl(all_tags, sent)
-    c = subsentence.create_combinations(sent)
+    s = subsentence.create_subsentences(all_tags, sent)
+    c = list(subsentence.create_combinations_from_subsentences(s))
 
     assert len(c) == 2
     tags1 = [sub.tags for sub in c[0]]
@@ -150,8 +140,8 @@ def test_multiple_combinations():
         ["O", "O", "O", "O", "B-V"],
     ]
     sent = create_spacy_sent(5)
-    shared.srl = mock_srl(all_tags, sent)
-    c = subsentence.create_combinations(sent)
+    s = subsentence.create_subsentences(all_tags, sent)
+    c = list(subsentence.create_combinations_from_subsentences(s))
     c_tags = [[sub.tags for sub in comb] for comb in c]
 
     assert len(c) == 3
