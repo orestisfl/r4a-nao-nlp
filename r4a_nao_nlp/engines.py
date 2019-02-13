@@ -218,7 +218,7 @@ class SnipsSlot(tuple):
         return self.range.stop
 
     def __str__(self):
-        return "{}={}".format(self.name, self.value)
+        return f"{self.name}={self.value}"
 
 
 def _resolve_value(value: JsonDict) -> Union[datetime.timedelta, float, str]:

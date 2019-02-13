@@ -46,9 +46,7 @@ def _getEAttribute(eclass, name) -> pyecore.ecore.EAttribute:
     for attr in eclass.eAttributes:
         if attr.name == name:
             return attr
-    raise ValueError(
-        "EClass '{}' does not contain EAttribute '{}'".format(eclass.name, name)
-    )
+    raise ValueError(f"EClass '{eclass.name}' does not contain EAttribute '{name}'")
 
 
 def main(argv: List[str]) -> None:
