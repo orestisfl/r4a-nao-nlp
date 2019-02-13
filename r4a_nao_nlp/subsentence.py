@@ -192,7 +192,9 @@ class SubSentence:
         if isinstance(item, Iterable):
             return all(token in self for token in item)
         if not isinstance(item, Token):
-            return False
+            raise TypeError(
+                f"Argument 'item' has incorrect type: expected {Token}, got {type(item)}"
+            )
 
         return item in self.verb or any(item in span for span in self.args.values())
 
