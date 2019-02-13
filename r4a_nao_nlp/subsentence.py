@@ -98,7 +98,7 @@ class SubSentence:
         tokens = list(
             filter(
                 partial(
-                    self.include_token,
+                    self._parse_include_token,
                     modifiers=[
                         modifier for modifier in self.modifiers if modifier in others
                     ]
@@ -108,10 +108,26 @@ class SubSentence:
                 self.sent,
             )
         )
+        logger.debug("Parsing using tokens: %s", tokens)
 
         # XXX: this is hacky, cached value is used in process_document
         self.parsed = max(shared.parse(s) for s in self._coref_combinations(tokens))
         return self.parsed
+
+    def _parse_include_token(self, token: Token, modifiers: List[SubSentence]) -> bool:
+        """Decide if a token should be included when parsing the subsentence.
+
+        Returns `True` if the `token` is contained in the subsentence (part of the verb
+        or the ARGs) or if the `token` is contained in one of the ARGMs and not in any
+        of the `modifiers`.
+        """
+        if token in self:
+            # token in this predicate-argument structure
+            return True
+        span = self._argm_with_token(token)
+        # If a span is found, none of the passed modifier subsentences should include
+        # any part of it.
+        return span and not any(any(t in sub for t in span) for sub in modifiers)
 
     def _coref_combinations(self, tokens: List[Token]) -> Set[str]:
         # TODO: explain like coref_resolved etc
@@ -163,32 +179,12 @@ class SubSentence:
                 result.add("".join(resolved))
         return result
 
-    def include_token(self, token: Token, modifiers: List[SubSentence]) -> bool:
-        if token in self:
-            # token in this predicate-argument structure
-            return True
+    def _argm_with_token(self, token: Token) -> Optional[Span]:
         for span in self.argms.values():
             if token in span:
                 # assume no overlap in self's ARGMs
-                break
-        else:
-            return False
-        # None of the passed modifier subsentences should include this span
-        return not any(span in other for other in modifiers)
-
-    def text_connect(
-        self, modifiers: List[SubSentence], other: Optional[SubSentence] = None
-    ) -> List[Token]:
-        start = self.verb.end
-        end = other.verb.start if other else None
-        return [
-            token
-            for token in self.sent[start:end]
-            # TODO: (Test) argms tokens should be printed if not in other.
-            if not self.include_token(token, modifiers)
-            and (other is None or not other.include_token(token, modifiers))
-            and not any(token in mod for mod in modifiers)
-        ]
+                return span
+        return None
 
     def __contains__(self, item: object) -> bool:
         from spacy.tokens.token import Token
@@ -257,30 +253,45 @@ class Combination:
         ]
         rest = [subsentence for subsentence in self if subsentence not in modifiers]
         result = Graph(name=str(self))
+
+        connecting_tokens = [
+            token
+            for token in self.sent
+            if not any(
+                token in subsentence
+                or any(token in span for span in subsentence.argms.values())
+                for subsentence in self
+            )
+        ]
+        logger.debug("Connecting tokens: %s", connecting_tokens)
+
         # Add all subsentences to the graph, index them using their original order.
         for idx, subsentence in enumerate(self):
             result.add_node(subsentence, idx=idx)
-        for idx, subsentence in enumerate(rest):
-            # TODO common_modifiers = {key: value for key, value in subsentence.modifiers.items() if key in modifiers}
-            # TODO: next_subsentence = None and DRY
-            result.nodes[subsentence]["idx_main"] = idx
-            if subsentence is rest[-1]:
-                other_words = subsentence.text_connect(modifiers)
-                result.add_edge(subsentence, other_words)
 
-                logger.debug(
-                    "Last subsentence: '%s', with words after: '%s'",
-                    subsentence,
-                    other_words,
-                )
+        for idx, subsentence in enumerate(rest):
+            if subsentence is rest[-1]:
+                next_subsentence = None
+                end = self.sent[-1].i + 1
             else:
                 next_subsentence = rest[idx + 1]
-                other_words = subsentence.text_connect(modifiers, next_subsentence)
-                result.add_edge(subsentence, other_words, next_subsentence)
+                end = next_subsentence.verb.start
 
-                logger.debug(
-                    "SubSentence '%s', with words after: '%s'", subsentence, other_words
-                )
+            other_words = [
+                token
+                for token in connecting_tokens
+                if subsentence.verb.end <= token.i < end
+            ]
+            result.nodes[subsentence]["idx_main"] = idx
+            result.add_edge(subsentence, other_words, next_subsentence)
+
+            logger.debug(
+                "%ssubsentence: '%s', with words after: '%s'",
+                "Last " if next_subsentence is None else "",
+                subsentence,
+                other_words,
+            )
+
             for key, value in subsentence.modifiers.items():
                 if key in modifiers:
                     (inter, argms) = value
