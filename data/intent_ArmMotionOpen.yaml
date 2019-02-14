@@ -1,0 +1,6 @@
+---
+name: ArmMotionOpen
+slots:
+  - entity: Arm
+    name: arm
+type: intent

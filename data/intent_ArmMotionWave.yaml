@@ -1,0 +1,6 @@
+---
+name: ArmMotionWave
+slots:
+  - entity: Arm
+    name: arm
+type: intent

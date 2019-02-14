@@ -1,0 +1,8 @@
+---
+automatically_extensible: false
+name: Arm
+type: entity
+values:
+  - LEFT
+  - RIGHT
+  - [BOTH, arms, hands]

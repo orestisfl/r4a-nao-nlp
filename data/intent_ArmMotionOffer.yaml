@@ -1,0 +1,6 @@
+---
+name: ArmMotionOffer
+slots:
+  - entity: Arm
+    name: arm
+type: intent

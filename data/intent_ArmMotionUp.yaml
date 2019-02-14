@@ -1,0 +1,6 @@
+---
+name: ArmMotionUp
+slots:
+  - entity: Arm
+    name: arm
+type: intent

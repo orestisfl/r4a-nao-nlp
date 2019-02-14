@@ -13,5 +13,41 @@
     "slots": {
       "direction:Direction": "FORWARDS"
     }
+  },
+  "ArmMotionClose": {
+    "name": "ArmMotion",
+    "slots": {
+      "armMotion:ArmMotionType": "CLOSE"
+    }
+  },
+  "ArmMotionOpen": {
+    "name": "ArmMotion",
+    "slots": {
+      "armMotion:ArmMotionType": "OPEN"
+    }
+  },
+  "ArmMotionExtend": {
+    "name": "ArmMotion",
+    "slots": {
+      "armMotion:ArmMotionType": "EXTEND"
+    }
+  },
+  "ArmMotionOffer": {
+    "name": "ArmMotion",
+    "slots": {
+      "armMotion:ArmMotionType": "OFFER"
+    }
+  },
+  "ArmMotionUp": {
+    "name": "ArmMotion",
+    "slots": {
+      "armMotion:ArmMotionType": "UP"
+    }
+  },
+  "ArmMotionWave": {
+    "name": "ArmMotion",
+    "slots": {
+      "armMotion:ArmMotionType": "WAVE"
+    }
   }
 }

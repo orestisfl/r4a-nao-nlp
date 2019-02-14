@@ -1,0 +1,6 @@
+---
+name: ArmMotionExtend
+slots:
+  - entity: Arm
+    name: arm
+type: intent

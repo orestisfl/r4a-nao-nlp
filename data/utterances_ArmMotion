@@ -1,6 +1,0 @@
-[armMotion]({Wave,Extend,Open,Close,Offer,Waving,Extending,Opening,Closing,Offering}) {your [arm]({arms,hands}),[arm](both) of your {arms,hands},your [arm]({left,right}) {arm,hand}}
-{Move,Moving} {your [arm]({arms,hands}),[arm](both) of your {arms,hands},your [arm]({left,right}) {arm,hand}} [armMotion]({up,upwards})
-[armMotion]({Lift,Lifting,Raise,Raising}) {your [arm]({arms,hands}),[arm](both) of your {arms,hands},your [arm]({left,right}) {arm,hand}}{ fingers [armMotion]({apart,wide,closed}),}
-[armMotion]({Spread,Spreading}) your fingers{, wide}
-[armMotion]({Open,Close,Opening,Closing,Clench,Clenching,Squeeze,Squeezing}) your fingers
-Hold {your [arm]({arms,hands}),[arm](both) of your {arms,hands},your [arm]({left,right}) {arm,hand}} out so that it is completely [armMotion](extended).

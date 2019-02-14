@@ -1,0 +1,6 @@
+---
+name: ArmMotionClose
+slots:
+  - entity: Arm
+    name: arm
+type: intent
