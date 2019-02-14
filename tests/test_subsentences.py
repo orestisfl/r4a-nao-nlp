@@ -3,6 +3,7 @@ from typing import List, Optional
 from unittest.mock import Mock
 
 import networkx as nx
+import pytest
 from spacy.tokens.span import Span
 from spacy.tokens.token import Token
 
@@ -10,14 +11,17 @@ from r4a_nao_nlp import subsentence
 from r4a_nao_nlp.engines import shared
 from r4a_nao_nlp.graph import Graph
 
-# We only need spacy
-shared.init(
-    snips_path=None,
-    srl_predictor_path=None,
-    neural_coref_model=None,
-    spacy_lang="en_core_web_sm",
-)
-shared.parse = Mock(return_value=Mock(score=1.0))
+
+@pytest.fixture(scope="module", autouse=True)
+def init():
+    # We only need spacy
+    shared.init(
+        snips_path=None,
+        srl_predictor_path=None,
+        neural_coref_model=None,
+        spacy_lang="en_core_web_sm",
+    )
+    shared.parse = Mock(return_value=Mock(score=1.0))
 
 
 def create_spacy_sent(length: int, s: Optional[str] = None) -> Span:
