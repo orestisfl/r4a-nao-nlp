@@ -1,0 +1,1 @@
+{{Move,Moving,Walk,Walking,Go,Going} [distance] [direction]({left,right}),{Take,Taking} a [direction]({left,right}),Turn 90 degrees [direction]({left,right}),Turn [direction]({left,right}) by 90 degrees}{, with a speed of [speedNum] per [speedDen:snips/duration](second)}{,\, {keeping,with} a safety distance of [safetyDistance], at{, a speed of} [speedNum] / [speedDen](h)}

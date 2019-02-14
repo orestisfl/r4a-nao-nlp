@@ -1,6 +1,5 @@
-# Generic BodyMotion without direction
 ---
-name: BodyMotion
+name: BodyMotionForwards
 slots:
   - entity: Distance
     name: distance

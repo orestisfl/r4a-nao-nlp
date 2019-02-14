@@ -1,1 +1,17 @@
-{}
+{
+  "BodyMotionTurn": {
+    "name": "BodyMotion"
+  },
+  "BodyMotionBackwards": {
+    "name": "BodyMotion",
+    "slots": {
+      "direction:Direction": "BACKWARDS"
+    }
+  },
+  "BodyMotionForwards": {
+    "name": "BodyMotion",
+    "slots": {
+      "direction:Direction": "FORWARDS"
+    }
+  }
+}

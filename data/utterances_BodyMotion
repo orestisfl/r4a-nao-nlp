@@ -1,11 +1,1 @@
-{Move,Moving,Walk,Walking,Go,Going} [direction]({backwards,forward{s,},along}) for [distance]
-{Move,Moving,Walk,Walking,Go,Going} [distance] [direction]({backwards,forwards,left,right})
-{Run,Running,Go,Going,Move,Moving,Walk,Walking} [direction]({backwards,forward{s,}}) {for,over the next} [distance]{, with a speed of [speedNum] per [speedDen:snips/duration](second)}{,\, {keeping,with} a safety distance of [safetyDistance]}
-{Run,Running,Go,Going,Move,Moving,Walk,Walking} [direction]({backwards,forwards}) at{, a speed of} [speedNum] / [speedDen](h)
-[direction]({Advance,Advancing,Backtrace,Backtracing}) [distance]
-{Take,Taking} a [direction]({left,right})
-Turn 90 degrees [direction]({left,right})
-Turn [direction]({left,right}) by 90 degrees
-[direction]({Reverse,Reversing}) back into your starting position
-[direction]({Return,Returning}) to where you started
-[direction]({Reverse,Reversing}) [distance]
+{Run,Running,Move,Moving,Walk,Walking,Go,Going}

@@ -1,7 +1,16 @@
-# Generic BodyMotion without direction
 ---
-name: BodyMotion
+automatically_extensible: false
+name: Direction
+type: entity
+values:
+  - LEFT
+  - RIGHT
+
+---
+name: BodyMotionTurn
 slots:
+  - entity: Direction
+    name: direction
   - entity: Distance
     name: distance
   - entity: snips/duration

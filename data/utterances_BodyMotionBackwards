@@ -1,0 +1,8 @@
+{Move,Moving,Walk,Walking,Go,Going} {backwards,back} for [distance]
+{Move,Moving,Walk,Walking,Go,Going}{ [distance],} {backwards,back}
+{Run,Running,Go,Going,Move,Moving,Walk,Walking} {backwards,back} {for,over the next} [distance]{, with a speed of [speedNum] per [speedDen:snips/duration](second)}{,\, {keeping,with} a safety distance of [safetyDistance]}
+{Run,Running,Go,Going,Move,Moving,Walk,Walking} {backwards,back} at{, a speed of} [speedNum] / [speedDen](h)
+{Backtrace,Backtracing} [distance]
+{Reverse,Reversing} back into your starting position
+{Return,Returning} to where you started
+{Reverse,Reversing} [distance]

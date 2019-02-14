@@ -1,0 +1,20 @@
+---
+automatically_extensible: true
+name: Distance
+type: entity
+needs_duckling: true
+values:
+  - 1 meter
+  - 2m
+  - 10cm
+  - 10 centimeters
+  - 5 miles
+  - 5 kilometers
+  - five meters
+  - ten centimeters
+  - one centimeter
+  - one kilometer
+  - five inches
+  - 5 inches
+  - 1 inch
+  - 6''
