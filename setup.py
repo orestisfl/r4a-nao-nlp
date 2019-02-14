@@ -57,7 +57,7 @@ setup(
         }
     ),
     python_requires=">=3.7",
-    package_data={"r4a_nao_nlp": ["engine.tar.gz"]},
+    package_data={"r4a_nao_nlp": ["engine.tar.gz", "transformations.json"]},
     author="Orestis Floros",
     author_email="orestisf1993@gmail.com",
     description="TODO",

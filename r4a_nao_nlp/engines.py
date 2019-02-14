@@ -30,11 +30,13 @@ class Shared:
         self.coref_predictor = None
         self._spacy = None
 
+        self._transformations: JsonDict = {}
         self.srl_cache = {}
 
     def init(
         self,
         snips_path: Optional[str] = os.path.join(HERE, "engine.tar.gz"),
+        transformations: Optional[str] = os.path.join(HERE, "transformations.json"),
         srl_predictor_path: Optional[
             str
         ] = "https://s3-us-west-2.amazonaws.com/allennlp/models/srl-model-2018.05.25.tar.gz",
@@ -61,6 +63,13 @@ class Shared:
                         self.engine = SnipsNLUEngine.from_path(
                             os.path.join(tmp, "engine")
                         )
+
+        if transformations:
+            logger.debug("Loading transformations file from %s", transformations)
+            import json
+
+            with open(transformations) as f:
+                self._transformations = json.load(f)
 
         if srl_predictor_path:
             logger.debug("Loading allennlp srl model from %s", srl_predictor_path)
@@ -109,9 +118,27 @@ class Shared:
         assert self.engine
 
         logger.debug("Passing '%s' to snips engine", s)
-        result = SnipsResult(self.engine.parse(s))
+        result = SnipsResult(self._transform(self.engine.parse(s)))
         logger.debug("Result = '%s'", result)
         return result
+
+    def _transform(self, parsed: JsonDict):
+        transformation = self._transformations.get(parsed["intent"]["intentName"])
+        if transformation:
+            parsed["intent"]["intentName"] = transformation["name"]
+            if "slots" in transformation:
+                for slot, value in transformation["slots"].items():
+                    name, entity = slot.split(":")
+                    parsed["slots"].append(
+                        {
+                            "slotName": name,
+                            "entity": entity,
+                            "range": {"start": -1, "end": -1},
+                            "value": {"kind": "Custom", "value": value},
+                        }
+                    )
+
+        return parsed
 
     def srl(self, s: str) -> JsonDict:
         assert self.srl_predictor
