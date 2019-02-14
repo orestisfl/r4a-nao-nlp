@@ -27,7 +27,6 @@ def init():
 def create_spacy_sent(length: int, s: Optional[str] = None) -> Span:
     """Return a fake spacy sentence of the given length."""
     if s is None:
-        assert length is not None
         s = " ".join(idx_to_word(idx) for idx in range(length - 1)) + " ."
 
     doc = shared.spacy(s)
