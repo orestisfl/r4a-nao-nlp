@@ -129,13 +129,14 @@ class Shared:
             if "slots" in transformation:
                 for slot, value in transformation["slots"].items():
                     name, entity = slot.split(":")
-                    parsed["slots"].append(
+                    parsed["slots"].insert(
+                        0,  # Insert in beginning because of the invalid range.
                         {
                             "slotName": name,
                             "entity": entity,
                             "range": {"start": -1, "end": -1},
                             "value": {"kind": "Custom", "value": value},
-                        }
+                        },
                     )
 
         return parsed
