@@ -25,17 +25,23 @@ def main(argv: List[str]) -> None:
     arguments = parse_command_line(argv[1:])
 
     with dest_context_manager(arguments.dest) as converted:
+        logger.debug("Converting and saving data to %s", converted)
         convert_data(src=arguments.data, dest=converted)
         dataset = load_dataset(converted)
 
         json_save(dataset, os.path.join(converted, "dataset.json"))
 
+    logger.debug("Loading Snips")
     import snips_nlu
 
     snips_nlu.load_resources("en")
     engine = snips_nlu.SnipsNLUEngine()
+
+    logger.debug("Training engine")
     engine.fit(dataset)
     save_engine(engine, arguments.out_engine)
+
+    logger.debug("Done")
 
 
 def parse_command_line(argv: List[str]) -> Namespace:
@@ -135,6 +141,8 @@ def save_engine(engine: SnipsNLUEngine, path: str) -> None:
     with tarfile.open(path, "w:gz") as archive:
         with TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "engine")
+
+            logger.debug("Saving engine to path %s", path)
             engine.persist(path)
             archive.add(path, arcname="engine")
 
