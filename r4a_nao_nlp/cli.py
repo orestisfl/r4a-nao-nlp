@@ -40,7 +40,8 @@ def parse_command_line(argv: List[str]) -> None:
     parser.parse_args(argv)
 
 
-def process_document(doc: Doc) -> None:
+def process_document(doc: Doc, plot: bool = False, ecore: bool = False) -> List[Graph]:
+    result = []
     for sent in doc.sents:
         logger.debug("Processing sent: %s", str(sent))
 
@@ -61,11 +62,15 @@ def process_document(doc: Doc) -> None:
             )
         else:
             g = combinations[max_idx].to_graph()
-        g.plot(str(sent) + ("." if str(sent[-1]) != "." else "") + "pdf")
+        if plot:
+            g.plot(str(sent) + ("." if str(sent[-1]) != "." else "") + "pdf")
+        result.append(g)
 
-        for node in g.nodes:
-            if node is not None:
-                print(node.parsed.to_eobject())
+        if ecore:
+            for node in g.nodes:
+                if node is not None:
+                    print(node.parsed.to_eobject())
+    return result
 
 
 def calc_score(clauses: List[SnipsResult]) -> float:

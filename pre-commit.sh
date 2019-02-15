@@ -39,7 +39,7 @@ git diff --cached --name-only --diff-filter=d | while read FILE; do
 done || exit $?
 
 tmpdir="$(mktemp -d)/"
-git checkout-index --prefix="$tmpdir" $(git ls-files 'test*.py')
+git checkout-index --prefix="$tmpdir" $(git ls-files 'test*.py' | grep -v 'test_full.py')
 
 chronic python -m pytest -vv -s "$tmpdir"
 exit_code=$?
