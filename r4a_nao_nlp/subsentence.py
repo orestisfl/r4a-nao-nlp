@@ -111,7 +111,10 @@ class SubSentence:
         logger.debug("Parsing using tokens: %s", tokens)
 
         # XXX: this is hacky, cached value is used in process_document
-        self.parsed = max(shared.parse(s) for s in self._coref_combinations(tokens))
+        _, self.parsed = max(
+            ((r, shared.parse(s)) for r, s in self._coref_combinations(tokens)),
+            key=lambda v: (v[0] + 1) * float(v[1]),
+        )
         return self.parsed
 
     def _parse_include_token(self, token: Token, modifiers: List[SubSentence]) -> bool:
@@ -129,11 +132,11 @@ class SubSentence:
         # any part of it.
         return span and not any(any(t in sub for t in span) for sub in modifiers)
 
-    def _coref_combinations(self, tokens: List[Token]) -> Set[str]:
+    def _coref_combinations(self, tokens: List[Token]) -> Set[Tuple[int, str]]:
         # TODO: explain like coref_resolved etc
 
         base_tokens = tuple(token.text_with_ws for token in tokens)  # TODO:rename
-        result = {"".join(base_tokens)}
+        result = {(0, "".join(base_tokens))}
 
         # We also need to check if .coref_clusters is empty because of
         # https://github.com/huggingface/neuralcoref/issues/58.
@@ -176,7 +179,7 @@ class SubSentence:
 
                     msg += resolved[overlap[0]] + "'"
                     logger.debug(msg)
-                result.add("".join(resolved))
+                result.add((r, "".join(resolved)))
         return result
 
     def _argm_with_token(self, token: Token) -> Optional[Span]:

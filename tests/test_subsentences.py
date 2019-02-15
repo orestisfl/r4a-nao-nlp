@@ -1,6 +1,6 @@
 from string import ascii_lowercase
 from typing import List, Optional
-from unittest.mock import Mock
+from unittest.mock import MagicMock, Mock
 
 import networkx as nx
 import pytest
@@ -21,7 +21,9 @@ def init():
         neural_coref_model=None,
         spacy_lang="en_core_web_sm",
     )
-    shared.parse = Mock(return_value=Mock(score=1.0))
+    mock = MagicMock(score=1.0)
+    mock.__float__.return_value = 1.0
+    shared.parse = Mock(return_value=mock)
 
 
 def create_spacy_sent(length: int, s: Optional[str] = None) -> Span:
