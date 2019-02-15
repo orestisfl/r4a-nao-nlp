@@ -1,5 +1,1 @@
-{{Recognize,Recognizing} speech,Listen,Listening} {for [duration],[bDetectForever]({forever,non-stop,indefinitely})}{, [bSayOptions](saying) the options {available,given}}
-[bSayOptions]({Say,Echo}) options and detect sound
-{[bSayOptions]({Say,Echo}),[bSayOptions](Without) saying} options, detect sound
-After [bSayOptions]({Saying,Echoing}) options, detect sound
-{Detect,Detecting} sound {[bSayOptions](without) {saying,echoing} options,after [bSayOptions]({saying,echoing}) options}
+{{Recognize,Recognizing} speech,Listen,Listening,{Detect,Detecting} sound} {for [duration],[bDetectForever]({forever,non-stop,indefinitely})}
