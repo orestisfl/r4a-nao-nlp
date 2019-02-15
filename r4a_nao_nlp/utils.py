@@ -7,7 +7,7 @@ _logging_handler = logging.StreamHandler()
 
 def init_logging() -> None:
     """Create a logging handler for our modules and configure the root logger."""
-    logging.basicConfig()
+    logging.basicConfig(format="%(asctime)s " + logging.BASIC_FORMAT)
     original_handler = logging.root.handlers[0]
     original_handler.setLevel(logging.WARNING)
     original_handler.set_name("original")
