@@ -38,4 +38,11 @@ git diff --cached --name-only --diff-filter=d | while read FILE; do
     check_fmt "$FILE" || exit $?
 done || exit $?
 
-chronic python -m pytest -vv -s $(git ls-files 'test*.py')
+tmpdir="$(mktemp -d)/"
+git checkout-index --prefix="$tmpdir" $(git ls-files 'test*.py')
+
+chronic python -m pytest -vv -s "$tmpdir"
+exit_code=$?
+
+rm -rf "$tmpdir"
+exit "$exit_code"
