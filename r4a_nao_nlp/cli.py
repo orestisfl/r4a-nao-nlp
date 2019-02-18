@@ -41,12 +41,16 @@ def parse_command_line(argv: List[str]) -> None:
 
 
 def process_document(doc: Doc, plot: bool = False, ecore: bool = False) -> List[Graph]:
+    for sent in doc.sents:
+        shared.srl_put(str(sent))
+
     result = []
     for sent in doc.sents:
         logger.debug("Processing sent: %s", str(sent))
 
-        # XXX: create all combinations for each sentence in background for speed-up
-        combinations = subsentence.create_combinations(sent)
+        srl_result = shared.srl_get()
+
+        combinations = subsentence.create_combinations(sent, srl_result)
         logger.debug("Final combinations: %s", ", ".join(str(c) for c in combinations))
         if combinations:
             scores = [calc_score(c.parsed) for c in combinations]

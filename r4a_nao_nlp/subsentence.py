@@ -347,15 +347,14 @@ def span_search(value: Span, *spans: Span) -> Optional[Span]:
     return None
 
 
-def create_combinations(sent: Span) -> List[Combination]:
-    result = shared.srl(str(sent))
+def create_combinations(sent: Span, srl_result: JsonDict) -> List[Combination]:
     logger.debug(
         "SRL (descriptions): %s",
-        "\n\t- ".join(v["description"] for v in result["verbs"]),
+        "\n\t- ".join(v["description"] for v in srl_result["verbs"]),
     )
-    assert result["words"] == [str(token) for token in sent]
+    assert srl_result["words"] == [str(token) for token in sent]
 
-    all_tags: List[List[str]] = [verb["tags"] for verb in result["verbs"]]
+    all_tags: List[List[str]] = [verb["tags"] for verb in srl_result["verbs"]]
     subsentences = create_subsentences(all_tags, sent)
     return list(create_combinations_from_subsentences(subsentences))
 

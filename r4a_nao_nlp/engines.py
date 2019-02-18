@@ -26,12 +26,10 @@ class Shared:
 
         # TODO: typing, make some of them less optional
         self.engine = None
-        self.srl_predictor = None
         self.coref_predictor = None
         self._spacy = None
 
         self._transformations: JsonDict = {}
-        self.srl_cache = {}
 
     def init(
         self,
@@ -45,6 +43,20 @@ class Shared:
         neural_coref_model: Optional[str] = "en_coref_md",
     ) -> None:
         logger.debug("Initializing shared resources")
+
+        if srl_predictor_path:
+            logger.debug(
+                "Initiating allennlp SRL server with model from %s", srl_predictor_path
+            )
+            from multiprocessing import Queue, Process
+
+            self._srl_qi = Queue()
+            self._srl_qo = Queue()
+            self._srl_server = Process(
+                target=_predictor_server,
+                args=(srl_predictor_path, self._srl_qi, self._srl_qo),
+            )
+            self._srl_server.start()
 
         if snips_path:
             logger.debug("Loading snips engine from %s", snips_path)
@@ -70,13 +82,6 @@ class Shared:
 
             with open(transformations) as f:
                 self._transformations = json.load(f)
-
-        if srl_predictor_path:
-            logger.debug("Loading allennlp srl model from %s", srl_predictor_path)
-            from allennlp.predictors.predictor import Predictor
-            from allennlp.common.file_utils import cached_path
-
-            self.srl_predictor = Predictor.from_path(cached_path(srl_predictor_path))
 
         if coref_predictor_path and neural_coref_model:
             logger.warn(
@@ -141,13 +146,12 @@ class Shared:
 
         return parsed
 
-    def srl(self, s: str) -> JsonDict:
-        assert self.srl_predictor
+    def srl_put(self, s: str) -> None:
+        logger.debug("SRL put: %s", s)
+        self._srl_qi.put_nowait(s)
 
-        # TODO: just lru cache
-        r = self.srl_predictor.predict(s)
-        self.srl_cache[s] = r
-        return r
+    def srl_get(self) -> JsonDict:
+        return self._srl_qo.get()
 
     def spacy(self, s: str) -> Doc:
         assert self._spacy
@@ -168,7 +172,16 @@ class Shared:
             return self.coref_predictor.predict(s)
 
 
-shared = Shared()
+def _predictor_server(path, qi, qo):
+    from allennlp.predictors.predictor import Predictor
+    from allennlp.common.file_utils import cached_path
+
+    predictor = Predictor.from_path(cached_path(path))
+
+    while True:
+        s = qi.get()
+        qo.put_nowait(predictor.predict(s))
+
 
 # TODO: https://docs.python.org/3/library/dataclasses.html
 class SnipsResult(tuple):
@@ -281,4 +294,5 @@ def _resolve_duration(value: JsonDict) -> datetime.timedelta:
     )
 
 
+shared = Shared()
 # vim:ts=4:sw=4:expandtab:fo-=t:tw=88

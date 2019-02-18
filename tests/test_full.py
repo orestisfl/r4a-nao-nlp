@@ -1,5 +1,4 @@
 from operator import itemgetter
-from unittest.mock import Mock
 
 import networkx as nx
 import pytest
@@ -167,10 +166,27 @@ SRL_CACHE = {
 }
 
 
+class MockSRL:
+    def __init__(self):
+        self.q = []
+        self.used = set()
+
+    def get(self):
+        return SRL_CACHE[self.q.pop(0)]
+
+    def put(self, s):
+        assert s not in self.used
+        self.used.add(s)
+        self.q.append(s)
+
+
 @pytest.fixture(scope="module", autouse=True)
 def init():
     shared.init(srl_predictor_path=None)
-    shared.srl = Mock(side_effect=SRL_CACHE.__getitem__)
+    srl = MockSRL()
+    shared.srl = srl
+    shared.srl_put = srl.put
+    shared.srl_get = srl.get
 
 
 def sorted_subsentence_nodes(g):
@@ -280,11 +296,10 @@ def test_all_used():
     # No duplicates
     assert len(keys) == len(SRL_CACHE)
 
-    call_args = shared.srl.call_args_list.copy()
+    call_args = list(shared.srl.used)
 
     while keys:
         s = keys.pop()
-        arg = ((s,),)
-        call_args.remove(arg)
+        call_args.remove(s)
 
     assert len(call_args) == 0
