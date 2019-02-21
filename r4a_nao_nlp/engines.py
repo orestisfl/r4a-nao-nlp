@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import datetime
+import json
 import os
 import tarfile
 from functools import lru_cache
@@ -48,15 +49,13 @@ class Shared:
             logger.debug(
                 "Initiating allennlp SRL server with model from %s", srl_predictor_path
             )
-            from multiprocessing import Queue, Process
+            from subprocess import Popen, PIPE
 
-            self._srl_qi = Queue()
-            self._srl_qo = Queue()
-            self._srl_server = Process(
-                target=_predictor_server,
-                args=(srl_predictor_path, self._srl_qi, self._srl_qo),
+            self._srl_server = Popen(
+                ["python", "-m", "r4a_nao_nlp.srl_server", srl_predictor_path],
+                stdin=PIPE,
+                stdout=PIPE,
             )
-            self._srl_server.start()
 
         if snips_path:
             logger.debug("Loading snips engine from %s", snips_path)
@@ -78,7 +77,6 @@ class Shared:
 
         if transformations:
             logger.debug("Loading transformations file from %s", transformations)
-            import json
 
             with open(transformations) as f:
                 self._transformations = json.load(f)
@@ -148,10 +146,11 @@ class Shared:
 
     def srl_put(self, s: str) -> None:
         logger.debug("SRL put: %s", s)
-        self._srl_qi.put_nowait(s)
+        self._srl_server.stdin.write((s + "\0\n").encode())
+        self._srl_server.stdin.flush()
 
     def srl_get(self) -> JsonDict:
-        return self._srl_qo.get()
+        return json.loads(self._srl_server.stdout.readline().decode())
 
     def spacy(self, s: str) -> Doc:
         assert self._spacy
@@ -170,17 +169,6 @@ class Shared:
             assert self.coref_predictor
 
             return self.coref_predictor.predict(s)
-
-
-def _predictor_server(path, qi, qo):
-    from allennlp.predictors.predictor import Predictor
-    from allennlp.common.file_utils import cached_path
-
-    predictor = Predictor.from_path(cached_path(path))
-
-    while True:
-        s = qi.get()
-        qo.put_nowait(predictor.predict(s))
 
 
 # TODO: https://docs.python.org/3/library/dataclasses.html
