@@ -27,7 +27,6 @@ class Shared:
 
         # TODO: typing, make some of them less optional
         self.engine = None
-        self.coref_predictor = None
         self._spacy = None
 
         self._transformations: JsonDict = {}
@@ -39,7 +38,6 @@ class Shared:
         srl_predictor_path: Optional[
             str
         ] = "https://s3-us-west-2.amazonaws.com/allennlp/models/srl-model-2018.05.25.tar.gz",
-        coref_predictor_path: Optional[str] = None,
         spacy_lang: Optional[str] = "en",
         neural_coref_model: Optional[str] = "en_coref_md",
     ) -> None:
@@ -80,21 +78,6 @@ class Shared:
 
             with open(transformations) as f:
                 self._transformations = json.load(f)
-
-        if coref_predictor_path and neural_coref_model:
-            logger.warn(
-                "Ignoring allennlp coref model %s because of neuralcoref model %s",
-                coref_predictor_path,
-                neural_coref_model,
-            )
-        elif coref_predictor_path:
-            logger.debug("Loading allennlp coref model from %s", coref_predictor_path)
-            from allennlp.predictors.predictor import Predictor
-            from allennlp.common.file_utils import cached_path
-
-            self.coref_predictor = Predictor.from_path(
-                cached_path(coref_predictor_path)
-            )
 
         if spacy_lang and neural_coref_model:
             logger.debug(
@@ -161,14 +144,6 @@ class Shared:
 
         logger.debug("Passing '%s' to spacy", s)
         return self._spacy(s)
-
-    def coref(self, s: str) -> Union[Doc, JsonDict]:
-        if self.neuralcoref:
-            return self.neuralcoref(s)
-        else:
-            assert self.coref_predictor
-
-            return self.coref_predictor.predict(s)
 
 
 # TODO: https://docs.python.org/3/library/dataclasses.html
