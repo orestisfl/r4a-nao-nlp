@@ -38,8 +38,7 @@ class Shared:
         srl_predictor_path: Optional[
             str
         ] = "https://s3-us-west-2.amazonaws.com/allennlp/models/srl-model-2018.05.25.tar.gz",
-        spacy_lang: Optional[str] = "en",
-        neural_coref_model: Optional[str] = "en_coref_md",
+        spacy_lang: Optional[str] = "en_coref_md",
     ) -> None:
         logger.debug("Initializing shared resources")
 
@@ -79,23 +78,11 @@ class Shared:
             with open(transformations) as f:
                 self._transformations = json.load(f)
 
-        if spacy_lang and neural_coref_model:
-            logger.debug(
-                "Skipping spacy model %s, will load neuralcoref model %s",
-                spacy_lang,
-                neural_coref_model,
-            )
-        elif spacy_lang:
+        if spacy_lang:
             import spacy
 
             logger.debug("Loading spacy lang %s", spacy_lang)
             self._spacy = spacy.load(spacy_lang)
-
-        if neural_coref_model:
-            import spacy
-
-            logger.debug("Loading spacy neuralcoref model %s", neural_coref_model)
-            self._spacy = self.neuralcoref = spacy.load(neural_coref_model)
 
         logger.info("Done loading")
 

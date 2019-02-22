@@ -15,12 +15,7 @@ from r4a_nao_nlp.graph import Graph
 @pytest.fixture(scope="module", autouse=True)
 def init():
     # We only need spacy
-    shared.init(
-        snips_path=None,
-        srl_predictor_path=None,
-        neural_coref_model=None,
-        spacy_lang="en_core_web_sm",
-    )
+    shared.init(snips_path=None, srl_predictor_path=None, spacy_lang="en_core_web_sm")
     mock = MagicMock(score=1.0)
     mock.__float__.return_value = 1.0
     shared.parse = Mock(return_value=mock)
