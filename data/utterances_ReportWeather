@@ -1,6 +1,6 @@
-[greekCities] report weather
-[greekCities] weather report
-Weather report [greekCities]
-Tell me the weather in [greekCities]
-What's the weather like in [greekCities]?
-{Report,Reporting} the weather in [greekCities]
+{,[greekCities] }weather report
+{,[greekCities] }report weather
+Weather report{, [greekCities]}
+Tell me the weather{, in [greekCities]}
+What's the weather like{, in [greekCities]}?
+{Report,Reporting} the weather{, in [greekCities]}
