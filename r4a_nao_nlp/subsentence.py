@@ -299,13 +299,17 @@ class Combination:
 
             for key, value in subsentence.modifiers.items():
                 if key in modifiers:
-                    (inter, argms) = value
-                    words_before = list(self.sent.doc[argms.start : inter.start])
-                    if not words_before:
-                        words_before = None
-                    words_after = list(self.sent.doc[inter.end + 1 : argms.end])
-                    if not words_after:
-                        words_after = None
+                    (inter, argm) = value
+                    words_before = [
+                        token
+                        for token in self.sent.doc[argm.start : inter.start]
+                        if token not in key
+                    ] or None
+                    words_after = [
+                        token
+                        for token in self.sent.doc[inter.end + 1 : argm.end]
+                        if token not in key
+                    ] or None
                     result.add_edge(subsentence, words_before, key, words_after)
 
                     logger.debug(
