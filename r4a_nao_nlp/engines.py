@@ -65,13 +65,24 @@ class Shared:
             logger.debug(
                 "Initiating allennlp SRL server with model from %s", srl_predictor_path
             )
-            from subprocess import Popen, PIPE
+            import atexit
+            from subprocess import Popen, PIPE, TimeoutExpired
+
+            def cleanup(process):
+                if process.poll() is None:
+                    logger.debug("Closing process %s", process.pid)
+                    try:
+                        process.communicate(timeout=5)
+                    except TimeoutExpired:
+                        logger.exception("Killing %s", process.pid)
+                        process.kill()
 
             self._srl_server = Popen(
                 ["python", "-m", "r4a_nao_nlp.srl_server", srl_predictor_path],
                 stdin=PIPE,
                 stdout=PIPE,
             )
+            atexit.register(cleanup, self._srl_server)
 
         if snips_path:
             logger.debug("Loading snips engine from %s", snips_path)
