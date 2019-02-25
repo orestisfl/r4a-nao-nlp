@@ -7,13 +7,15 @@ The output of the following annotators is used:
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from collections import deque
+from threading import Thread
+from typing import TYPE_CHECKING, Deque, Dict, Iterable, List, Tuple
 
 from r4a_nao_nlp import utils
-from r4a_nao_nlp.engines import shared
+from r4a_nao_nlp.engines import QUOTE_STRING, shared
 
 if TYPE_CHECKING:
-    from r4a_nao_nlp.typing import JsonDict
+    from r4a_nao_nlp.typing import JsonDict, Doc
 
     TokenIdx = Tuple[int, int]  # (sentence index, token index)
     CharacterIdx = Tuple[int, int]  # (character offset start, character offset end)
@@ -28,7 +30,25 @@ ANNOTATORS_STATISTICAL_COREF = ("depparse", "coref")
 ANNOTATORS_NEURAL_COREF = ("parse", "coref")
 
 
-def get_quotes(s: str) -> List[JsonDict]:
+def replace_quotes(s: str) -> Tuple[str, Deque[str]]:
+    assert QUOTE_STRING not in s
+    quotes = _get_quotes(s)
+    q = deque()
+
+    if quotes:
+        chars = list(s)
+        for quote in quotes:
+            start = quote["beginIndex"]
+            end = quote["endIndex"]
+            chars[start] = QUOTE_STRING
+            for idx in range(start + 1, end):
+                chars[idx] = ""
+            q.append(quote["text"])
+        s = "".join(chars)
+    return s, q
+
+
+def _get_quotes(s: str) -> List[JsonDict]:
     # This is a quite fast pipeline because we don't use quote attribution.
     return shared.core_annotate(
         s,
@@ -41,35 +61,47 @@ def get_quotes(s: str) -> List[JsonDict]:
     )["quotes"]
 
 
-# TODO: Doc
-def annotate_coref(s: str) -> CorefDict:
-    statistical_corefs = _statistical_coref(s)
-    # XXX: use a thread here?
-    neural_corefs = _neural_coref(s)
-    # TODO: Doc
-    # return _corefs(reply)
-    # XXX: maybe this is too slow?
-    return _merge_corefs(statistical_corefs, neural_corefs)
-
-
-def _statistical_coref(s: str) -> CorefDict:
-    return _corefs(
-        shared.core_annotate(
-            s, annotators=BASE_ANNOTATORS + ANNOTATORS_STATISTICAL_COREF
+class CorefThreads:
+    def __init__(self, s: str, methods: Iterable[str] = ("statistical", "neural")):
+        self._threads = tuple(
+            Thread(
+                target=getattr(self, f"_{name}_coref"),
+                args=(s,),
+                daemon=True,  # Does not prohibit the process from exiting.
+                name=name,
+            )
+            for name in methods
         )
-    )
+        for thread in self._threads:
+            thread.start()
+        self._joined = None
 
+    def _statistical_coref(self, s: str) -> None:
+        self.statistical = _corefs(
+            shared.core_annotate(
+                s, annotators=BASE_ANNOTATORS + ANNOTATORS_STATISTICAL_COREF
+            )
+        )
 
-def _neural_coref(s: str) -> CorefDict:
-    return (
-        _corefs(
+    def _neural_coref(self, s: str) -> None:
+        # XXX: maybe this is too slow?
+        self.neural = _corefs(
             shared.core_annotate(
                 s,
                 properties={"coref.algorithm": "neural"},
                 annotators=BASE_ANNOTATORS + ANNOTATORS_NEURAL_COREF,
             )
-        ),
-    )
+        )
+
+    # TODO: Doc
+    def join(self) -> CorefDict:
+        if self._joined is None:
+            for thread in self._threads:
+                thread.join()
+            self._joined = getattr(self, self._threads[0].name)
+            for thread in self._threads[1:]:
+                self._joined = _merge_corefs(self._joined, getattr(self, thread.name))
+        return self._joined
 
 
 def _corefs(parsed: JsonDict) -> CorefDict:
@@ -132,10 +164,19 @@ def _token_to_char(parsed: JsonDict) -> TokenToCharacter:
         for token in tokens:
             result[(sent_idx, token["index"])] = (
                 token["characterOffsetBegin"],
-                # XXX: characterOffsetEnd unused
                 token["characterOffsetEnd"],
             )
     return result
+
+
+def doc_mark_quotes(doc: Doc, replacements: Deque[str]) -> None:
+    """Assign the `quote` extension attribute to all appropriate "QUOTE" tokens
+    according to the given `replacements`."""
+    if replacements:
+        for token in doc:
+            if str(token) == QUOTE_STRING:
+                token._.quote = replacements.popleft()
+        assert not replacements
 
 
 # vim:ts=4:sw=4:expandtab:fo-=t:tw=88

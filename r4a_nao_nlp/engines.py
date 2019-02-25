@@ -8,17 +8,18 @@ import tarfile
 from functools import lru_cache
 from operator import itemgetter
 from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING, Dict, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Dict, Iterable, Optional, Sequence, Union
 
 from r4a_nao_nlp import utils
 
 if TYPE_CHECKING:
-    from r4a_nao_nlp.typing import JsonDict, Doc
+    from r4a_nao_nlp.typing import JsonDict, Doc, Token
 
 logger = utils.create_logger(__name__)
 # XXX: Can use pkg_resources to find distributed resources:
 # https://setuptools.readthedocs.io/en/latest/pkg_resources.html
 HERE = os.path.abspath(os.path.dirname(__file__))
+QUOTE_STRING = "QUOTE"
 
 
 class Shared:
@@ -114,16 +115,63 @@ class Shared:
             logger.debug("Loading spacy lang %s", spacy_lang)
             self._spacy = spacy.load(spacy_lang)
 
+        if self._spacy and self._core_nlp_server_url:
+            from spacy.tokens import Token
+
+            Token.set_extension("quote", default=None, force=True)
+
         logger.info("Done loading")
 
     @lru_cache(maxsize=1024)
-    def parse(self, s: str) -> "SnipsResult":
+    def _parse(self, s: str) -> JsonDict:
+        logger.debug("Passing '%s' to snips engine", s)
+        return self._transform(self.engine.parse(s))
+
+    def parse(self, s: str) -> SnipsResult:
         assert self.engine
 
-        logger.debug("Passing '%s' to snips engine", s)
-        result = SnipsResult(self._transform(self.engine.parse(s)))
+        result = SnipsResult(self._parse(s))
         logger.debug("Result = '%s'", result)
         return result
+
+    def parse_tokens(self, tokens: Sequence[Token]) -> SnipsResult:
+        s = " ".join(str(t) for t in tokens)  # TODO: better whitespace
+        quotes = (
+            [t._.quote for t in tokens if t._.quote is not None]
+            if self._core_nlp_server_url
+            else None
+        )
+        if not quotes:
+            return self.parse(s)
+
+        # Copy since we modify what is returned by the lru_cache.
+        result = self._parse(s).copy()
+        # We don't bother to modify "input" so it will be invalid afterwards, make sure
+        # we don't use it later.
+        del result["input"]
+
+        offset = 0
+        for slot in result["slots"]:
+            raw = slot["rawValue"]
+            slot["range"]["start"] += offset
+            if QUOTE_STRING in raw:
+                assert slot["value"]["kind"] == "Custom"
+
+                replacement = quotes.pop(0)
+                slot["value"]["value"] = slot["value"]["value"].replace(
+                    QUOTE_STRING, replacement, 1
+                )
+                slot["rawValue"] = slot["rawValue"].replace(
+                    QUOTE_STRING, replacement, 1
+                )
+                assert QUOTE_STRING not in slot["value"]
+                assert QUOTE_STRING not in slot["rawValue"]
+                offset += len(replacement) - len(raw)
+            slot["range"]["end"] += offset
+
+        snips_result = SnipsResult(result)
+        logger.debug("Result = '%s'", snips_result)
+        return snips_result
 
     def _transform(self, parsed: JsonDict):
         transformation = self._transformations.get(parsed["intent"]["intentName"])

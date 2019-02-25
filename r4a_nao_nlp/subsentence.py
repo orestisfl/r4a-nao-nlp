@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from functools import partial, reduce
-from itertools import combinations, permutations
+from itertools import chain, combinations, permutations
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set, Tuple
 
 from r4a_nao_nlp import utils
@@ -112,7 +112,7 @@ class SubSentence:
 
         # XXX: this is hacky, cached value is used in process_document
         _, self.parsed = max(
-            ((r, shared.parse(s)) for r, s in self._coref_combinations(tokens)),
+            ((r, shared.parse_tokens(t)) for r, t in self._coref_combinations(tokens)),
             key=lambda v: (v[0] + 1) * float(v[1]),
         )
         return self.parsed
@@ -132,11 +132,10 @@ class SubSentence:
         # any part of it.
         return span and not any(any(t in sub for t in span) for sub in modifiers)
 
-    def _coref_combinations(self, tokens: List[Token]) -> Set[Tuple[int, str]]:
+    def _coref_combinations(self, tokens: List[Token]) -> Set[Tuple[int, List[Token]]]:
         # TODO: explain like coref_resolved etc
 
-        base_tokens = tuple(token.text_with_ws for token in tokens)  # TODO:rename
-        result = {(0, "".join(base_tokens))}
+        result = {(0, tuple(tokens))}
 
         # We also need to check if .coref_clusters is empty because of
         # https://github.com/huggingface/neuralcoref/issues/58.
@@ -163,23 +162,13 @@ class SubSentence:
 
         for r in range(1, len(corefs) + 1):
             for c in combinations(corefs, r):
-                resolved = list(base_tokens)
+                resolved: List[Iterable[Token]] = [[token] for token in tokens]
                 for (cluster, coref, overlap) in c:
-                    msg = (
-                        "Replacing '"
-                        + "".join(resolved[x] for x in overlap)
-                        + "' with '"
-                    )
-
-                    resolved[overlap[0]] = (
-                        cluster.main.text + self.sent.doc[coref.end - 1].whitespace_
-                    )
+                    resolved[overlap[0]] = cluster.main
                     for idx in overlap[1:]:
-                        resolved[idx] = ""
+                        resolved[idx] = []
 
-                    msg += resolved[overlap[0]] + "'"
-                    logger.debug(msg)
-                result.add((r, "".join(resolved)))
+                result.add((r, tuple(chain.from_iterable(resolved))))
         return result
 
     def _argm_with_token(self, token: Token) -> Optional[Span]:

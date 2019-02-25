@@ -11,6 +11,7 @@ values:
   - Your meal is ready
   - I am a robot
   - Good morning and have a great day
+  - QUOTE
 
 ---
 automatically_extensible: false

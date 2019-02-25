@@ -4,12 +4,11 @@ from __future__ import annotations
 from operator import itemgetter
 from typing import TYPE_CHECKING, List
 
-from r4a_nao_nlp import subsentence, utils
+from r4a_nao_nlp import core_nlp, subsentence, utils
 from r4a_nao_nlp.engines import shared
 from r4a_nao_nlp.graph import Graph
 
 if TYPE_CHECKING:
-    from r4a_nao_nlp.typing import Doc
     from r4a_nao_nlp.engines import SnipsResult
 
 logger = utils.create_logger(__name__)
@@ -31,7 +30,7 @@ def main(argv: List[str]) -> int:
         except OSError:
             logger.exception("Failed to load %s", line)
         else:
-            process_document(shared.spacy(text))
+            process_document(text)
 
 
 def parse_command_line(argv: List[str]) -> None:
@@ -40,9 +39,12 @@ def parse_command_line(argv: List[str]) -> None:
     parser.parse_args(argv)
 
 
-def process_document(doc: Doc, plot: bool = False, ecore: bool = False) -> List[Graph]:
+def process_document(s: str, plot: bool = False, ecore: bool = False) -> List[Graph]:
+    s, replacements = core_nlp.replace_quotes(s)
+    doc = shared.spacy(s)
     for sent in doc.sents:
         shared.srl_put(str(sent))
+    core_nlp.doc_mark_quotes(doc, replacements)
 
     result = []
     for sent in doc.sents:
