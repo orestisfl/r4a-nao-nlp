@@ -54,6 +54,7 @@ setup(
             "plots": ["matplotlib", "adjustText"],
             "ecore": ["pyecore", "PyYAML", "braceexpand"],
             "train": ["braceexpand"],  # snips-nlu-en
+            "CoreNLP-server": ["requests"],
         }
     ),
     python_requires=">=3.7",

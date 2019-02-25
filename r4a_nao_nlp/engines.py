@@ -8,7 +8,7 @@ import tarfile
 from functools import lru_cache
 from operator import itemgetter
 from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Dict, Iterable, Optional, Union
 
 from r4a_nao_nlp import utils
 
@@ -28,6 +28,7 @@ class Shared:
         # TODO: typing, make some of them less optional
         self.engine = None
         self._spacy = None
+        self._core_nlp_server_url = None
 
         self._transformations: JsonDict = {}
 
@@ -39,8 +40,26 @@ class Shared:
             str
         ] = "https://s3-us-west-2.amazonaws.com/allennlp/models/srl-model-2018.05.25.tar.gz",
         spacy_lang: Optional[str] = "en_coref_md",
+        core_nlp_server_url: Optional[str] = "http://localhost:9000",
     ) -> None:
         logger.debug("Initializing shared resources")
+
+        if core_nlp_server_url:
+            logger.debug(
+                "Connecting to stanford CoreNLP server %s", core_nlp_server_url
+            )
+            import requests
+
+            try:
+                requests.head(core_nlp_server_url).ok
+                self._core_nlp_server_url = core_nlp_server_url
+            except IOError:
+                logger.exception("During HEAD request:")
+                logger.warn(
+                    "Failed to load CoreNLP server %s, make sure it is live and ready,"
+                    " continuing without it.",
+                    core_nlp_server_url,
+                )
 
         if srl_predictor_path:
             logger.debug(
@@ -131,6 +150,40 @@ class Shared:
 
         logger.debug("Passing '%s' to spacy", s)
         return self._spacy(s)
+
+    def core_annotate(
+        self, s: str, properties: Optional[Dict[str, str]] = None, **kwargs
+    ) -> JsonDict:
+        if not self._core_nlp_server_url:
+            raise ValueError("CoreNLP server not configured")
+        import requests
+
+        properties = properties or {}
+        properties.update(kwargs, outputFormat="json")
+        if "annotators" in properties:
+            annotators = properties["annotators"]
+            if not isinstance(annotators, str):
+                if not isinstance(annotators, Iterable):
+                    raise TypeError("annotators should be Iterable or str")
+                properties["annotators"] = ",".join(
+                    str(annotator) for annotator in annotators
+                )
+
+        # TODO: requests session instead of Connection: close
+        logger.debug("Sending data=%s, properties=%s to CoreNLP", s, properties)
+        r = requests.post(
+            self._core_nlp_server_url,
+            data=s.encode(),
+            params={"properties": str(properties)},
+            headers={"Connection": "close"},
+        )
+        if r.ok:
+            logger.debug("Got reply")
+            return json.loads(r.text)
+        raise RuntimeError(
+            f"Failed to POST to nlp server {self._core_nlp_server_url}: "
+            f"{r.status_code}{' - ' + r.text if r.text else ''}"
+        )
 
 
 # TODO: https://docs.python.org/3/library/dataclasses.html
