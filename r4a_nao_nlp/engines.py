@@ -33,6 +33,7 @@ class Shared:
 
         self._transformations: JsonDict = {}
 
+    @utils.timed
     def init(
         self,
         snips_path: Optional[str] = os.path.join(HERE, "engine.tar.gz"),
@@ -119,8 +120,6 @@ class Shared:
             from spacy.tokens import Token
 
             Token.set_extension("quote", default=None, force=True)
-
-        logger.info("Done loading")
 
     @lru_cache(maxsize=1024)
     def _parse(self, s: str) -> JsonDict:

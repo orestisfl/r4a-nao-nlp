@@ -1,6 +1,7 @@
 """Common operations relating to logging and argument parsing."""
 import argparse
 import logging
+from typing import Callable, Optional
 
 _logging_handler = logging.StreamHandler()
 
@@ -61,6 +62,32 @@ class ArgumentParser(argparse.ArgumentParser):
         kwargs.setdefault("help", "Path to the root Ecore meta-model")
 
         self._ecore_dest = self.add_argument(*args, **kwargs).dest
+
+
+def timed(fun: Callable, logger: Optional[logging.Logger] = None) -> Callable:
+    """Execution time to log decorator.
+
+    If `logger` is `None`, the `"logger"` attribute of the function's module is used.
+    """
+    from inspect import getmodule
+    from time import time
+
+    module = getmodule(fun)
+    logger = logger or module.logger
+
+    def wrapper(*args, **kwargs):
+        start = time()
+        result = fun(*args, **kwargs)
+        diff = time() - start
+        logger.debug(
+            "Function %s.%s took %.2f seconds to complete",
+            module.__name__,
+            fun.__qualname__,
+            diff,
+        )
+        return result
+
+    return wrapper
 
 
 # vim:ts=4:sw=4:expandtab:fo-=t:tw=88

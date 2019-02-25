@@ -39,6 +39,7 @@ def parse_command_line(argv: List[str]) -> None:
     parser.parse_args(argv)
 
 
+@utils.timed
 def process_document(s: str, plot: bool = False, ecore: bool = False) -> List[Graph]:
     s, replacements = core_nlp.replace_quotes(s)
     doc = shared.spacy(s)
