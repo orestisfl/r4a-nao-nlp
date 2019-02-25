@@ -3,3 +3,4 @@
 {Run,Running,Go,Going,Move,Moving,Walk,Walking} forward{s,} {for,over the next} [distance]{, with a speed of [speedNum] per [speedDen:snips/duration](second)}{,\, {keeping,with} a safety distance of [safetyDistance]}
 {Run,Running,Go,Going,Move,Moving,Walk,Walking} forwards at{, a speed of} [speedNum] / [speedDen](h)
 {Advance,Advancing} [distance]
+{Make,Making,Take,Taking} [distance](a step) {forwards,straight}
