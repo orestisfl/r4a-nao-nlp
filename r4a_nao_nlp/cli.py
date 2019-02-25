@@ -22,6 +22,8 @@ def main(argv: List[str]) -> int:
     while True:
         try:
             line = input()
+            if not line:
+                continue
         except EOFError:
             return 0
         try:
