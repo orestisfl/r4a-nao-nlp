@@ -202,10 +202,6 @@ class Shared:
     def spacy(self, s: str) -> Doc:
         assert self._spacy
 
-        # TODO: find a better way to deal with problems with whitespace.
-        # Eliminate newlines and multiple whitespace.
-        s = " ".join(s.split())
-
         logger.debug("Passing '%s' to spacy", s)
         return self._spacy(s)
 

@@ -43,11 +43,17 @@ def parse_command_line(argv: List[str]) -> None:
 
 @utils.timed
 def process_document(s: str, plot: bool = False, ecore: bool = False) -> List[Graph]:
+    # TODO: find a better way to deal with problems with whitespace.
+    # Eliminate newlines and multiple whitespace.
+    s = " ".join(s.split())
+
     s, replacements = core_nlp.replace_quotes(s)
+    threads = core_nlp.CorefThreads(s, ("statistical",))
     doc = shared.spacy(s)
     for sent in doc.sents:
         shared.srl_put(str(sent))
     core_nlp.doc_mark_quotes(doc, replacements)
+    core_nlp.doc_enhance_corefs(doc, threads.join())
 
     result = []
     for sent in doc.sents:

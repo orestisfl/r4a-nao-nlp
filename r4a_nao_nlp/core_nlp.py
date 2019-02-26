@@ -8,14 +8,15 @@ The output of the following annotators is used:
 from __future__ import annotations
 
 from collections import deque
+from itertools import chain
 from threading import Thread
-from typing import TYPE_CHECKING, Deque, Dict, Iterable, List, Tuple
+from typing import TYPE_CHECKING, Any, Deque, Dict, Iterable, List, Tuple
 
 from r4a_nao_nlp import utils
 from r4a_nao_nlp.engines import QUOTE_STRING, shared
 
 if TYPE_CHECKING:
-    from r4a_nao_nlp.typing import JsonDict, Doc
+    from r4a_nao_nlp.typing import JsonDict, Doc, Span, Token
 
     TokenIdx = Tuple[int, int]  # (sentence index, token index)
     CharacterIdx = Tuple[int, int]  # (character offset start, character offset end)
@@ -177,6 +178,82 @@ def doc_mark_quotes(doc: Doc, replacements: Deque[str]) -> None:
             if str(token) == QUOTE_STRING:
                 token._.quote = replacements.popleft()
         assert not replacements
+
+
+def doc_enhance_corefs(doc: Doc, corefs: CorefDict) -> None:
+    """Extend the coreference clusters annotated by neuralcoref with the given
+    coreference dict.
+
+    If the `coref_clusters` extension attribute doesn't exist, this function will create it.
+
+    If the representative mention of a cluster is already found by neuralcoref, all new
+    secondary mentions will be appended to its `Cluster.mentions` list. Otherwise, a new
+    `MockCluster` object is created and the mentions are saved there.
+
+    In either case, the `coref_clusters` list is updated for each token in the `doc`.
+
+    After using this function, some methods provided by neuralcoref are not expected to
+    work. The following should still work though:
+    - `cluster.main`
+    - iterating over a cluster
+    - `doc._.coref_clusters`
+    - `token._.coref_clusters`
+    """
+    from spacy.tokens import Doc, Token
+
+    if not Doc.has_extension("coref_clusters"):
+        Doc.set_extension("coref_clusters", default=[])
+    if not Token.has_extension("coref_clusters"):
+        Token.set_extension("coref_clusters", default=[])
+
+    for ((main_start, main_end), main_text), references in corefs.items():
+        mentions = [doc.char_span(start, end) for (start, end), _ in references]
+        for cluster in doc._.coref_clusters:
+            if (
+                cluster.main.start_char == main_start
+                and cluster.main.end_char == main_end
+            ):
+                logger.debug(
+                    "Adding mentions %s to existing cluster %s", mentions, cluster
+                )
+                assert main_text == str(cluster.main)
+
+                for mention in mentions:
+                    if mention not in cluster:
+                        for token in mention:
+                            _token_add_cluster(token, cluster)
+                        cluster.mentions.append(mention)
+                # XXX: sort?
+                break
+        else:
+            main_span = doc.char_span(main_start, main_end)
+            cluster = MockCluster(main_span, mentions)
+            for token in chain.from_iterable(cluster):
+                _token_add_cluster(token, cluster)
+
+            assert all(
+                text == str(mention) for (_, text), mention in zip(references, cluster)
+            )
+
+
+class MockCluster:
+    """Immitates a `neuralcoref.Cluster` object."""
+
+    def __init__(self, main: Span, mentions: List[Span]):
+        self.main = main
+        self.mentions = mentions
+
+    def __iter__(self):
+        return iter(self.mentions)
+
+    @property
+    def i(self):
+        raise NotImplementedError
+
+
+def _token_add_cluster(token: Token, cluster: Any):
+    if cluster not in token._.coref_clusters:
+        token._.coref_clusters.append(cluster)
 
 
 # vim:ts=4:sw=4:expandtab:fo-=t:tw=88
