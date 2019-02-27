@@ -174,27 +174,26 @@ class Shared:
 
     def _transform(self, parsed: JsonDict):
         transformation = self._transformations.get(parsed["intent"]["intentName"])
-        if transformation:
-            parsed["intent"]["intentName"] = transformation["name"]
-            if "slots" in transformation:
-                for slot, value in transformation["slots"].items():
-                    name, entity = slot.split(":")
+        if not transformation:
+            return parsed
 
-                    if any(
-                        existing["slotName"] == name for existing in parsed["slots"]
-                    ):
-                        logger.debug("Slot %s already exists", name)
-                        continue
+        parsed["intent"]["intentName"] = transformation["name"]
+        for slot, value in transformation.get("slots", {}).items():
+            name, entity = slot.split(":")
 
-                    parsed["slots"].insert(
-                        0,  # Insert in beginning because of the invalid range.
-                        {
-                            "slotName": name,
-                            "entity": entity,
-                            "range": {"start": -1, "end": -1},
-                            "value": {"kind": "Custom", "value": value},
-                        },
-                    )
+            if any(existing["slotName"] == name for existing in parsed["slots"]):
+                logger.debug("Slot %s already exists", name)
+                continue
+
+            parsed["slots"].insert(
+                0,  # Insert in beginning because of the invalid range.
+                {
+                    "slotName": name,
+                    "entity": entity,
+                    "range": {"start": -1, "end": -1},
+                    "value": {"kind": "Custom", "value": value},
+                },
+            )
 
         return parsed
 
