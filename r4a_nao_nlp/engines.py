@@ -179,6 +179,13 @@ class Shared:
             if "slots" in transformation:
                 for slot, value in transformation["slots"].items():
                     name, entity = slot.split(":")
+
+                    if any(
+                        existing["slotName"] == name for existing in parsed["slots"]
+                    ):
+                        logger.debug("Slot %s already exists", name)
+                        continue
+
                     parsed["slots"].insert(
                         0,  # Insert in beginning because of the invalid range.
                         {
