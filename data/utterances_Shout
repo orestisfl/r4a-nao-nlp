@@ -1,0 +1,3 @@
+{Shout,Shouting} [text]{, in [language], using the [language] language}{,{ with a volume of,\, set volume to} {[volume],[volumePer]}}
+Set volume at {[volume],[volumePer]} and {shout} [text]{, in [language], using the [language] language}
+After setting volume at {[volume],[volumePer]}, {shout} [text]{, in [language], using the [language] language}

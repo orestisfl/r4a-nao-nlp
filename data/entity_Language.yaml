@@ -1,0 +1,7 @@
+---
+automatically_extensible: false
+name: Language
+type: entity
+values:
+  - ENGLISH
+  - GERMAN

@@ -1,5 +1,5 @@
 ---
-name: Talk
+name: Shout
 slots:
   - entity: Text
     name: text

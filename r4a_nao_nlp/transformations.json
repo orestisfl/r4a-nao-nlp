@@ -49,5 +49,17 @@
     "slots": {
       "armMotion:ArmMotionType": "WAVE"
     }
+  },
+  "Whisper": {
+    "name": "Talk",
+    "slots": {
+      "volume:snips/number": 10
+    }
+  },
+  "Shout": {
+    "name": "Talk",
+    "slots": {
+      "volume:snips/number": 100
+    }
   }
 }

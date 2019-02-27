@@ -1,0 +1,14 @@
+---
+automatically_extensible: true
+name: Text
+type: entity
+values:
+  - TEXT
+  - Something
+  - Hello
+  - Hello world
+  - Goodbye
+  - Your meal is ready
+  - I am a robot
+  - Good morning and have a great day
+  - QUOTE

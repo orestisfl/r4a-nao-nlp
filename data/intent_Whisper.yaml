@@ -1,5 +1,5 @@
 ---
-name: Talk
+name: Whisper
 slots:
   - entity: Text
     name: text
