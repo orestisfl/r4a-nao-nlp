@@ -10,7 +10,7 @@ from pyecore.ecore import EClass, EEnum
 from r4a_nao_nlp import utils
 
 if TYPE_CHECKING:
-    from r4a_nao_nlp.engines import SnipsResult
+    from r4a_nao_nlp.typing import SnipsResult
 
 logger = utils.create_logger(__name__)
 mm_root = None

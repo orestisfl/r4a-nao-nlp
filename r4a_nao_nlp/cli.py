@@ -8,8 +8,7 @@ from r4a_nao_nlp import core_nlp, subsentence, utils
 from r4a_nao_nlp.engines import shared
 
 if TYPE_CHECKING:
-    from r4a_nao_nlp.engines import SnipsResult
-    from r4a_nao_nlp.graph import Graph
+    from r4a_nao_nlp.typing import SnipsResult, Graph
 
 logger = utils.create_logger(__name__)
 

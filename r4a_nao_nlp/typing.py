@@ -11,6 +11,9 @@ from spacy.tokens.doc import Doc
 from spacy.tokens.span import Span
 from spacy.tokens.token import Token
 
+from r4a_nao_nlp.engines import SnipsResult
+from r4a_nao_nlp.graph import Graph
+
 assert TYPE_CHECKING
 
 # TODO: document what we use this type for: Can be converted to human-readable string and
