@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Dict, Iterable, Optional, Sequence, Union
 from r4a_nao_nlp import utils
 
 if TYPE_CHECKING:
-    from r4a_nao_nlp.typing import JsonDict, Doc, Token
+    from r4a_nao_nlp.typing import JsonDict, Doc, Token, SnipsNLUEngine, Language
 
 logger = utils.create_logger(__name__)
 # XXX: Can use pkg_resources to find distributed resources:
@@ -26,10 +26,9 @@ class Shared:
     def __init__(self):
         logger.debug("Creating shared object")
 
-        # TODO: typing, make some of them less optional
-        self._engine = None
-        self._spacy = None
-        self._core_nlp_server_url = None
+        self._engine: Optional[SnipsNLUEngine] = None
+        self._spacy: Optional[Language] = None
+        self._core_nlp_server_url: Optional[str] = None
 
         self._transformations: JsonDict = {}
 
