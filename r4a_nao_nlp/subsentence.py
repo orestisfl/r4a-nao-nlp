@@ -237,8 +237,13 @@ class Combination:
             ]
         return self._parsed
 
-    def to_graph(self) -> Graph:
-        from r4a_nao_nlp.graph import Graph
+    def to_graph(self, graph: Optional[Graph] = None) -> Graph:
+        if graph is None:
+            from r4a_nao_nlp.graph import Graph
+
+            graph = Graph()
+        else:
+            graph.sent_idx += 1
 
         modifiers = [
             subsentence
@@ -246,7 +251,6 @@ class Combination:
             if any(other for other in subsentence.modifying if other in self)
         ]
         rest = [subsentence for subsentence in self if subsentence not in modifiers]
-        result = Graph(name=str(self))
 
         connecting_tokens = [
             token
@@ -261,7 +265,9 @@ class Combination:
 
         # Add all subsentences to the graph, index them using their original order.
         for idx, subsentence in enumerate(self):
-            result.add_node(subsentence, idx=idx)
+            graph.add_node(subsentence, idx=idx)
+
+        graph.connect_prev(rest[0])
 
         for idx, subsentence in enumerate(rest):
             if subsentence is rest[-1]:
@@ -276,8 +282,8 @@ class Combination:
                 for token in connecting_tokens
                 if subsentence.verb.end <= token.i < end
             ]
-            result.nodes[subsentence]["idx_main"] = idx
-            result.add_edge(subsentence, other_words, next_subsentence)
+            graph.nodes[subsentence]["idx_main"] = idx
+            graph.add_edge(subsentence, other_words, next_subsentence)
 
             logger.debug(
                 "%ssubsentence: '%s', with words after: '%s'",
@@ -299,7 +305,7 @@ class Combination:
                         for token in self.sent.doc[inter.end + 1 : argm.end]
                         if token not in key
                     ] or None
-                    result.add_edge(subsentence, words_before, key, words_after)
+                    graph.add_edge(subsentence, words_before, key, words_after)
 
                     logger.debug(
                         "Modifier subsentence '%s' with words '%s' and '%s'",
@@ -307,7 +313,7 @@ class Combination:
                         words_before,
                         words_after,
                     )
-        return result
+        return graph
 
     def __iter__(self):
         return iter(self.subsentences)

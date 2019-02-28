@@ -212,12 +212,7 @@ def cmp_adj(g, n1, expected_len, *expected):
 
 
 def test_arm_motion_with_corref():
-    doc = shared.spacy("Open your left hand and then extend it while saying hello.")
-    result = process_document(doc)
-
-    assert len(result) == 1
-
-    g = result[0]
+    g = process_document("Open your left hand and then extend it while saying hello.")
     assert len(g) == 4
 
     nodes = sorted_subsentence_nodes(g)
@@ -232,34 +227,24 @@ def test_arm_motion_with_corref():
 
     n1, n2, n3 = nodes
     cmp_adj(g, n1, 1, n2, "and then")
-    cmp_adj(g, n2, 3, n3, "while", None, ".")
+    cmp_adj(g, n2, 3, n3, "while", "End-0", ".")
     cmp_adj(g, n3, 1)
 
 
 def test_without_moving():
-    doc = shared.spacy("Recognize speech without moving.")
-    result = process_document(doc)
-
-    assert len(result) == 1
-
-    g = result[0]
+    g = process_document("Recognize speech without moving.")
     assert len(g) == 3
 
     nodes = sorted_subsentence_nodes(g)
     cmp_parsed_nodes(nodes, ["Listen()", "BodyMotion()"])
 
     n1, n2 = nodes
-    cmp_adj(g, n1, 2, n2, "without", None, ".")
+    cmp_adj(g, n1, 2, n2, "without", "End-0", ".")
     cmp_adj(g, n2, 1)
 
 
 def test_onback():
-    doc = shared.spacy("Say hello and lay on your back")
-    result = process_document(doc)
-
-    assert len(result) == 1
-
-    g = result[0]
+    g = process_document("Say hello and lay on your back")
     assert len(g) == 3
 
     nodes = sorted_subsentence_nodes(g)
@@ -267,16 +252,11 @@ def test_onback():
 
     n1, n2 = nodes
     cmp_adj(g, n1, 1, n2, "and")
-    cmp_adj(g, n2, 2, None, "")
+    cmp_adj(g, n2, 2, "End-0", "")
 
 
 def test_multiple_leds():
-    doc = shared.spacy("Turn on the leds of your chest and legs and go left")
-    result = process_document(doc)
-
-    assert len(result) == 1
-
-    g = result[0]
+    g = process_document("Turn on the leds of your chest and legs and go left")
     assert len(g) == 3
 
     nodes = sorted_subsentence_nodes(g)
@@ -288,7 +268,7 @@ def test_multiple_leds():
 
     n1, n2 = nodes
     cmp_adj(g, n1, 1, n2, "and")
-    cmp_adj(g, n2, 2, None, "")
+    cmp_adj(g, n2, 2, "End-0", "")
 
 
 def test_all_used():

@@ -9,16 +9,44 @@ if TYPE_CHECKING:
     from r4a_nao_nlp.typing import Token
 
 
+# XXX: directional graph?
 class Graph(nx.Graph):
     def __init__(self, *args, **kwargs):
+        self.sent_idx = 0
         super().__init__(*args, **kwargs)
 
     def add_edge(self, a, words, b=None, words_after=None, *args, **kwargs):
+        if b is None:
+            if words_after:
+                raise ValueError("Got words_after but b is None")
+            # Make sure that sent_end is in the graph with the correct sent_idx
+            b = self.sent_end
+            self.add_node(b)
+
         super().add_edge(a, b, label=words, *args, **kwargs)
         if words_after:
-            assert b
+            super().add_edge(b, self.sent_end, label=words_after, *args, **kwargs)
 
-            super().add_edge(b, None, label=words_after, *args, **kwargs)
+    def add_node(self, *args, **kwargs):
+        kwargs.setdefault("sent_idx", self.sent_idx)
+        super().add_node(*args, **kwargs)
+
+    @property
+    def prev_end(self):
+        return self._sent_end(self.sent_idx - 1) if self.sent_idx > 0 else None
+
+    @property
+    def sent_end(self):
+        return self._sent_end(self.sent_idx)
+
+    @staticmethod
+    def _sent_end(idx):
+        return f"End-{idx}"
+
+    def connect_prev(self, node):
+        prev_end = self.prev_end
+        if prev_end:
+            self.add_edge(prev_end, "", node)
 
     # TODO: Nodes in same height + vertical height?
     def plot(self, filename: str = "out.pdf") -> None:
@@ -26,17 +54,8 @@ class Graph(nx.Graph):
         import matplotlib.pyplot as plt
         from adjustText import adjust_text
 
-        initial_pos = {}
-        fixed = []
-        if None in self:
-            initial_pos[None] = (10, 10)  # TODO
-        for node, idx in nx.get_node_attributes(self, "idx_main").items():
-            if idx == 0:
-                fixed.append(node)
-            initial_pos[node] = (idx, 0)
-
-        pos = nx.spring_layout(self, pos=initial_pos, fixed=fixed)
-        node_collection = nx.draw_networkx_nodes(self, pos)
+        pos = self._create_pos()
+        node_collection = nx.draw_networkx_nodes(self, pos, node_size=50)
         edge_collection = nx.draw_networkx_edges(self, pos)
         # TODO: also include information about ARGMs types
         nx.draw_networkx_edge_labels(
@@ -52,7 +71,7 @@ class Graph(nx.Graph):
                 {key: value + (0.0, 0.08) for key, value in pos.items()},
                 font_size=6,
                 labels={
-                    n: str(n.parsed) if n is not None else "" for n in self.nodes()
+                    n: n if isinstance(n, str) else str(n.parsed) for n in self.nodes()
                 },
             ).values()
         )
@@ -63,6 +82,22 @@ class Graph(nx.Graph):
         plt.savefig(filename)
         plt.close()
         return node_collection, edge_collection
+
+    def _create_pos(self):
+        import numpy
+
+        result = {}
+        max_x = 1 + max(nx.get_node_attributes(self, "idx").values())
+        for node, data in self.nodes(data=True):
+            if isinstance(node, str):
+                x = max_x
+                is_mod = False
+            else:
+                x = data["idx"]
+                is_mod = "idx_main" not in data
+            y = -(2 * data["sent_idx"] + is_mod)
+            result[node] = numpy.array((x, y))
+        return result
 
 
 def _data_label(data: Dict[str, List[Token]]) -> str:

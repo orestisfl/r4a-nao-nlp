@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING, List
 
 from r4a_nao_nlp import core_nlp, subsentence, utils
 from r4a_nao_nlp.engines import shared
-from r4a_nao_nlp.graph import Graph
 
 if TYPE_CHECKING:
     from r4a_nao_nlp.engines import SnipsResult
+    from r4a_nao_nlp.graph import Graph
 
 logger = utils.create_logger(__name__)
 
@@ -42,7 +42,7 @@ def parse_command_line(argv: List[str]) -> None:
 
 
 @utils.timed
-def process_document(s: str, plot: bool = False, ecore: bool = False) -> List[Graph]:
+def process_document(s: str) -> Graph:
     # TODO: find a better way to deal with problems with whitespace.
     # Eliminate newlines and multiple whitespace.
     s = " ".join(s.split())
@@ -55,7 +55,7 @@ def process_document(s: str, plot: bool = False, ecore: bool = False) -> List[Gr
     core_nlp.doc_mark_quotes(doc, replacements)
     core_nlp.doc_enhance_corefs(doc, threads.join())
 
-    result = []
+    g = None
     for sent in doc.sents:
         logger.debug("Processing sent: %s", str(sent))
 
@@ -71,21 +71,20 @@ def process_document(s: str, plot: bool = False, ecore: bool = False) -> List[Gr
         # TODO: modifier? configurable?
         if not combinations or scores[max_idx] < 0.95 * simple.score:
             logger.debug("Prefering full sentence")
-            g = Graph()
-            g.add_node(
-                subsentence.SubSentence(["B-V"] + (len(sent) - 1) * ["I-V"], sent)
-            )
-        else:
-            g = combinations[max_idx].to_graph()
-        if plot:
-            g.plot(str(sent) + ("." if str(sent[-1]) != "." else "") + "pdf")
-        result.append(g)
+            if g is None:
+                from r4a_nao_nlp.graph import Graph
 
-        if ecore:
-            for node in g.nodes:
-                if node is not None:
-                    print(node.parsed.to_eobject())
-    return result
+                g = Graph()
+            else:
+                g.sent_idx += 1
+
+            node = subsentence.SubSentence(["B-V"] + (len(sent) - 1) * ["I-V"], sent)
+            g.add_node(node, idx=0, idx_main=0)
+            g.add_edge(node, "")
+        else:
+            g = combinations[max_idx].to_graph(g)
+
+    return g
 
 
 def calc_score(clauses: List[SnipsResult]) -> float:

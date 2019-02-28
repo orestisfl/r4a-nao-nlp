@@ -162,18 +162,22 @@ def verify_graph(
     g: Graph, s: List[subsentence.SubSentence], all_tags: List[List[str]]
 ) -> None:
     for node, data in g.nodes(data=True):
-        if node is None:
-            continue
-        assert "idx" in data
-        idx = data["idx"]
-        assert node.tags == all_tags[idx]
-        assert node == s[idx]
+        if "idx" in data:
+            idx = data["idx"]
+            assert node.tags == all_tags[idx]
+            assert node == s[idx]
+        else:
+            assert isinstance(node, str)
+            assert node == "End-0"
 
+    # Assume only single sentence:
     assert len(g) == len(s) + 1
-    # Last subsentence always connects with None
-    assert None in g
-    assert len(g[None]) == 1
-    assert g.nodes[list(g[None])[0]]["idx_main"] == max(
+    assert g.sent_idx == 0
+    assert g.sent_end == "End-0"
+    assert g.sent_end in g
+    end = g[g.sent_end]
+    assert len(end) == 1
+    assert g.nodes[list(end)[0]]["idx_main"] == max(
         nx.get_node_attributes(g, "idx_main").values()
     )
 
@@ -211,7 +215,7 @@ def test_graph():
 
     adj = g[s[2]]
     assert len(adj) == 2
-    assert cmp_tokens_to_words(adj[None]["label"], ".")
+    assert cmp_tokens_to_words(adj["End-0"]["label"], ".")
 
 
 def test_graph_common_argms():
@@ -256,7 +260,7 @@ def test_graph_common_argms():
 
     adj = g[s[1]]
     assert len(adj) == 3
-    assert cmp_tokens_to_words(adj[None]["label"], ".")
+    assert cmp_tokens_to_words(adj["End-0"]["label"], ".")
     assert cmp_tokens_to_words(adj[s[2]]["label"], "while")
 
 
@@ -304,7 +308,7 @@ def test_graph_multiple_argms_negation():
 
     adj = g[s[1]]
     assert len(adj) == 3
-    assert cmp_tokens_to_words(adj[None]["label"], ".")
+    assert cmp_tokens_to_words(adj["End-0"]["label"], ".")
     assert cmp_tokens_to_words(adj[s[2]]["label"], "while", "not")
 
 
