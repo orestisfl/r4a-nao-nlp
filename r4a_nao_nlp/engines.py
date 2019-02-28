@@ -27,7 +27,7 @@ class Shared:
         logger.debug("Creating shared object")
 
         # TODO: typing, make some of them less optional
-        self.engine = None
+        self._engine = None
         self._spacy = None
         self._core_nlp_server_url = None
 
@@ -92,7 +92,7 @@ class Shared:
 
             if os.path.isdir(snips_path):
                 logger.debug("%s is a directory, loading directly", snips_path)
-                self.engine = SnipsNLUEngine.from_path(snips_path)
+                self._engine = SnipsNLUEngine.from_path(snips_path)
             else:
                 with tarfile.open(snips_path, "r:gz") as archive:
                     with TemporaryDirectory() as tmp:
@@ -100,7 +100,7 @@ class Shared:
                         logger.debug(
                             "Extracted to temporary dir %s, loading from there", tmp
                         )
-                        self.engine = SnipsNLUEngine.from_path(
+                        self._engine = SnipsNLUEngine.from_path(
                             os.path.join(tmp, "engine")
                         )
 
@@ -124,10 +124,10 @@ class Shared:
     @lru_cache(maxsize=1024)
     def _parse(self, s: str) -> JsonDict:
         logger.debug("Passing '%s' to snips engine", s)
-        return self._transform(self.engine.parse(s))
+        return self._transform(self._engine.parse(s))
 
     def parse(self, s: str) -> SnipsResult:
-        assert self.engine
+        assert self._engine
 
         result = SnipsResult(self._parse(s))
         logger.debug("Result = '%s'", result)
