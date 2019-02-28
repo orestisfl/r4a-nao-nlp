@@ -151,7 +151,7 @@ class Shared:
 
         offset = 0
         for slot in result["slots"]:
-            raw = slot["rawValue"]
+            raw = slot.get("rawValue", "")
             slot["range"]["start"] += offset
             if QUOTE_STRING in raw:
                 assert slot["value"]["kind"] == "Custom"
