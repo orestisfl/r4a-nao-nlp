@@ -9,8 +9,7 @@ if TYPE_CHECKING:
     from r4a_nao_nlp.typing import Token
 
 
-# XXX: directional graph?
-class Graph(nx.Graph):
+class Graph(nx.DiGraph):
     def __init__(self, *args, **kwargs):
         self.sent_idx = 0
         super().__init__(*args, **kwargs)
@@ -56,7 +55,7 @@ class Graph(nx.Graph):
 
         pos = self._create_pos()
         node_collection = nx.draw_networkx_nodes(self, pos, node_size=50)
-        edge_collection = nx.draw_networkx_edges(self, pos)
+        edge_collection = nx.draw_networkx_edges(self, pos, arrowstyle="->")
         # TODO: also include information about ARGMs types
         nx.draw_networkx_edge_labels(
             self,

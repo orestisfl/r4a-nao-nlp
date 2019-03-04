@@ -227,8 +227,8 @@ def test_arm_motion_with_corref():
 
     n1, n2, n3 = nodes
     cmp_adj(g, n1, 1, n2, "and then")
-    cmp_adj(g, n2, 3, n3, "while", "End-0", ".")
-    cmp_adj(g, n3, 1)
+    cmp_adj(g, n2, 1, "End-0", ".")
+    cmp_adj(g, n3, 1, n2, "while")
 
 
 def test_without_moving():
@@ -239,8 +239,8 @@ def test_without_moving():
     cmp_parsed_nodes(nodes, ["Listen()", "BodyMotion()"])
 
     n1, n2 = nodes
-    cmp_adj(g, n1, 2, n2, "without", "End-0", ".")
-    cmp_adj(g, n2, 1)
+    cmp_adj(g, n1, 1, "End-0", ".")
+    cmp_adj(g, n2, 1, n1, "without")
 
 
 def test_onback():
@@ -252,7 +252,7 @@ def test_onback():
 
     n1, n2 = nodes
     cmp_adj(g, n1, 1, n2, "and")
-    cmp_adj(g, n2, 2, "End-0", "")
+    cmp_adj(g, n2, 1, "End-0", "")
 
 
 def test_multiple_leds():
@@ -268,7 +268,7 @@ def test_multiple_leds():
 
     n1, n2 = nodes
     cmp_adj(g, n1, 1, n2, "and")
-    cmp_adj(g, n2, 2, "End-0", "")
+    cmp_adj(g, n2, 1, "End-0", "")
 
 
 def test_all_used():

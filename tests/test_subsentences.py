@@ -175,9 +175,10 @@ def verify_graph(
     assert g.sent_idx == 0
     assert g.sent_end == "End-0"
     assert g.sent_end in g
-    end = g[g.sent_end]
-    assert len(end) == 1
-    assert g.nodes[list(end)[0]]["idx_main"] == max(
+    assert len(g[g.sent_end]) == 0
+    predecessors = list(g.predecessors(g.sent_end))
+    assert len(predecessors) == 1
+    assert g.nodes[predecessors[0]]["idx_main"] == max(
         nx.get_node_attributes(g, "idx_main").values()
     )
 
@@ -207,14 +208,15 @@ def test_graph():
     verify_graph(g, s, all_tags)
 
     adj = g[s[0]]
-    assert len(adj) == 2
-    assert cmp_tokens_to_indices(adj[s[1]]["label"], 1)
+    assert len(adj) == 1
     assert not adj[s[2]]["label"]
 
-    assert len(g[s[1]]) == 1
+    adj = g[s[1]]
+    assert len(adj) == 1
+    assert cmp_tokens_to_indices(adj[s[0]]["label"], 1)
 
     adj = g[s[2]]
-    assert len(adj) == 2
+    assert len(adj) == 1
     assert cmp_tokens_to_words(adj["End-0"]["label"], ".")
 
 
@@ -254,14 +256,17 @@ def test_graph_common_argms():
     verify_graph(g, s, all_tags)
 
     adj = g[s[0]]
-    assert len(adj) == 2
+    assert len(adj) == 1
     assert cmp_tokens_to_words(adj[s[1]]["label"], "and")
-    assert cmp_tokens_to_words(adj[s[2]]["label"], "while")
+
+    adj = g[s[2]]
+    assert len(adj) == 2
+    assert cmp_tokens_to_words(adj[s[0]]["label"], "while")
+    assert cmp_tokens_to_words(adj[s[1]]["label"], "while")
 
     adj = g[s[1]]
-    assert len(adj) == 3
+    assert len(adj) == 1
     assert cmp_tokens_to_words(adj["End-0"]["label"], ".")
-    assert cmp_tokens_to_words(adj[s[2]]["label"], "while")
 
 
 def test_graph_multiple_argms_negation():
@@ -302,14 +307,17 @@ def test_graph_multiple_argms_negation():
     verify_graph(g, s, all_tags)
 
     adj = g[s[0]]
-    assert len(adj) == 2
+    assert len(adj) == 1
     assert cmp_tokens_to_words(adj[s[1]]["label"], "and")
-    assert cmp_tokens_to_words(adj[s[2]]["label"], "while", "not")
+
+    adj = g[s[2]]
+    assert len(adj) == 2
+    assert cmp_tokens_to_words(adj[s[0]]["label"], "while", "not")
+    assert cmp_tokens_to_words(adj[s[1]]["label"], "while", "not")
 
     adj = g[s[1]]
-    assert len(adj) == 3
+    assert len(adj) == 1
     assert cmp_tokens_to_words(adj["End-0"]["label"], ".")
-    assert cmp_tokens_to_words(adj[s[2]]["label"], "while", "not")
 
 
 # vim:ts=4:sw=4:expandtab:fo-=t:tw=88

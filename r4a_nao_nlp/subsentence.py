@@ -303,7 +303,7 @@ class Combination:
                         for token in self.sent.doc[inter.end + 1 : argm.end]
                         if token not in key
                     ] or None
-                    graph.add_edge(subsentence, words_before, key, words_after)
+                    graph.add_edge(key, words_before, subsentence, words_after)
 
                     logger.debug(
                         "Modifier subsentence '%s' with words '%s' and '%s'",
