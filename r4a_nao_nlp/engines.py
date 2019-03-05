@@ -13,7 +13,14 @@ from typing import TYPE_CHECKING, Dict, Iterable, Optional, Sequence, Union
 from r4a_nao_nlp import utils
 
 if TYPE_CHECKING:
-    from r4a_nao_nlp.typing import JsonDict, Doc, Token, SnipsNLUEngine, Language
+    from r4a_nao_nlp.typing import (
+        Doc,
+        EObject,
+        JsonDict,
+        Language,
+        SnipsNLUEngine,
+        Token,
+    )
 
 logger = utils.create_logger(__name__)
 # XXX: Can use pkg_resources to find distributed resources:
@@ -270,8 +277,8 @@ class SnipsResult(tuple):
     name = property(itemgetter(1))
     slots = property(itemgetter(2))
 
-    # TODO
-    def to_eobject(self):
+    def to_eobject(self) -> EObject:
+        """Convert to an `EObject` of the corresponding `EClass`."""
         from r4a_nao_nlp import ecore
 
         return ecore.snips_result_to_eobject(self)

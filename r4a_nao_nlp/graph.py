@@ -6,8 +6,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 import networkx as nx
 
 if TYPE_CHECKING:
-    from r4a_nao_nlp.typing import Token, Node
-    from pyecore.ecore import EObject
+    from r4a_nao_nlp.typing import Token, Node, EObject
     from numpy import ndarray
 
 

@@ -5,6 +5,7 @@ typing.TYPE_CHECKING to avoid loading snips and spacy early.
 """
 from typing import TYPE_CHECKING, Any, Dict, Union
 
+from pyecore.ecore import EObject
 from snips_nlu import SnipsNLUEngine
 from spacy.language import Language
 from spacy.tokens.doc import Doc
