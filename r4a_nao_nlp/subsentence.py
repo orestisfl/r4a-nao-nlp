@@ -1,15 +1,15 @@
 # TODO: docstrings
 from __future__ import annotations
 
-from functools import partial, reduce
+from functools import reduce
 from itertools import chain, combinations, permutations
 from typing import TYPE_CHECKING, Container, Dict, Iterable, List, Optional, Set, Tuple
 
 from r4a_nao_nlp import utils
-from r4a_nao_nlp.engines import shared
+from r4a_nao_nlp.engines import SnipsResult, shared
 
 if TYPE_CHECKING:
-    from r4a_nao_nlp.typing import JsonDict, Span, Token, SnipsResult, Graph
+    from r4a_nao_nlp.typing import JsonDict, Span, Token, Graph
 
 logger = utils.create_logger(__name__)
 
@@ -101,40 +101,71 @@ class SubSentence:
         )
 
     def parse(self, others: Container[SubSentence] = ()) -> JsonDict:
-        tokens = list(
-            filter(
-                partial(
-                    self._parse_include_token,
-                    modifiers=[
-                        modifier for modifier in self.modifiers if modifier in others
-                    ],
-                ),
-                self.sent,
-            )
-        )
-        logger.debug("Parsing using tokens: %s", tokens)
+        modifiers: List[SubSentence] = [
+            modifier for modifier in self.modifiers if modifier in others
+        ]
+        always: List[int] = []
+        argms: Dict[Span, List[int]] = {}
+        for idx, token in enumerate(self.sent):
+            if token in self:
+                always.append(idx)
+            else:
+                # We work with spans here since we don't want to partially include ARGM
+                # spans - if any token of the corresponding ARGM span is included in any
+                # of the specified modifiers, exclude the whole span.
+                span = self._argm_with_token(token)
+                if span and not any(
+                    any(token in subsentence for token in span)
+                    for subsentence in modifiers
+                ):
+                    indices = argms.get(span)
+                    if indices:
+                        indices.append(idx)
+                    else:
+                        argms[span] = [idx]
 
-        # XXX: this is hacky, cached value is used in process_document
-        _, self.parsed = max(
-            ((r, shared.parse_tokens(t)) for r, t in self._coref_combinations(tokens)),
-            key=lambda v: (v[0] + 1) * float(v[1]),
-        )
+        # Shortcut that uses the 'always' list and the given combination of the values
+        # in the argms dict.
+        def parse(indices: Iterable[List[int]]) -> SnipsResult:
+            return self._parse_from_token_indices(
+                list(chain(always, chain.from_iterable(indices)))
+            )
+
+        self.parsed = parse(argms.values())
+        expected_result = str(self.parsed) if self.parsed else None
+        # At n_argms = 0 no modifier is included, at n_argms = len(argms) every modifier
+        # would be included.
+        for n_argms in range(len(argms) - 1, -1, -1):
+            for c in combinations(argms.values(), n_argms):
+                current_max = parse(c)
+                if current_max and (
+                    # Preserve the same parse result with any amount of modifiers so
+                    # that we don't end up using a simpler request. If the original
+                    # intent was None, skip this check to prefer ending up with any kind
+                    # of non-None result.
+                    not expected_result
+                    or (
+                        self.parsed <= current_max
+                        and str(current_max) == expected_result
+                    )
+                ):
+                    self.parsed = current_max
         return self.parsed
 
-    def _parse_include_token(self, token: Token, modifiers: List[SubSentence]) -> bool:
-        """Decide if a token should be included when parsing the subsentence.
+    def _parse_from_token_indices(self, indices: Container[int]) -> SnipsResult:
+        tokens = [token for idx, token in enumerate(self.sent) if idx in indices]
 
-        Returns `True` if the `token` is contained in the subsentence (part of the verb
-        or the ARGs) or if the `token` is contained in one of the ARGMs and not in any
-        of the `modifiers`.
-        """
-        if token in self:
-            # token in this predicate-argument structure
-            return True
-        span = self._argm_with_token(token)
-        # If a span is found, none of the passed modifier subsentences should include
-        # any part of it.
-        return span and not any(any(t in sub for t in span) for sub in modifiers)
+        logger.debug("Parsing using tokens: %s", tokens)
+        return max(
+            (
+                (n_coref_replacements, shared.parse_tokens(tokens_to_parse))
+                for n_coref_replacements, tokens_to_parse in self._coref_combinations(
+                    tokens
+                )
+            ),
+            # Score results with more coref replacements higher.
+            key=lambda v: (v[0] + 1) * float(v[1]),
+        )[1]
 
     def _coref_combinations(self, tokens: List[Token]) -> Set[Tuple[int, List[Token]]]:
         # TODO: explain like coref_resolved etc

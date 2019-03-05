@@ -18,6 +18,9 @@ def init():
     shared.init(snips_path=None, srl_predictor_path=None, spacy_lang="en_core_web_sm")
     mock = MagicMock(score=1.0)
     mock.__float__.return_value = 1.0
+    mock.__gt__.return_value = True
+    mock.__le__.return_value = False
+    mock.__lt__.return_value = False
     shared.parse = Mock(return_value=mock)
 
 

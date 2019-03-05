@@ -296,6 +296,10 @@ class SnipsResult(tuple):
     def __lt__(self, other: object):
         return self.score < other.score
 
+    @utils.other_isinstance
+    def __le__(self, other: object):
+        return self.score <= other.score
+
     def __str__(self):
         return "{intent}({args})".format(
             intent=self.name, args=",".join(str(slot) for slot in self.slots)
