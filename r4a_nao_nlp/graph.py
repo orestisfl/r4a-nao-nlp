@@ -112,7 +112,7 @@ class Graph(nx.DiGraph):
     def to_eobject(self, name: Optional[str] = None) -> EObject:
         from r4a_nao_nlp import ecore
 
-        return ecore.from_nodes(self, name)
+        return ecore.naoapp_from_nodes(self, name)
 
 
 def _data_label(data: Dict[str, List[Token]]) -> str:

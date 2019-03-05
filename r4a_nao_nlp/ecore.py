@@ -1,4 +1,4 @@
-# TODO: docstrings
+"""Contains functions that handle ecore metamodels."""
 from __future__ import annotations
 
 import os
@@ -18,6 +18,7 @@ mm_root = None
 
 
 def init_root(path_to_ecore: str) -> None:
+    """Load the root metamodel from the given path."""
     logger.debug("Initializing mm_root from %s", path_to_ecore)
 
     global mm_root
@@ -25,13 +26,15 @@ def init_root(path_to_ecore: str) -> None:
 
 
 def save_objects(*objects: EObject, path: str = "./out.highlevelnaoapp") -> None:
+    """Save objects to the given path."""
     resource = ResourceSet().create_resource(URI(path))
     for obj in objects:
         resource.append(obj)
     resource.save()
 
 
-def from_nodes(nodes: Iterable[Node], name: Optional[str] = None) -> EObject:
+def naoapp_from_nodes(nodes: Iterable[Node], name: Optional[str] = None) -> EObject:
+    """Create the top level NaoApp that will contain the given nodes."""
     naoapp = create_nao_app(name)
 
     for node in nodes:
@@ -44,13 +47,15 @@ def from_nodes(nodes: Iterable[Node], name: Optional[str] = None) -> EObject:
 
 
 def create_nao_app(name: str = "r4a_nao_nlp app") -> EObject:
+    """Create a top level NaoApp object with a Start and Finish."""
     naoapp = mm_root.getEClassifier("NaoApp")(name=name)
     naoapp.hasActivity.add(mm_root.getEClassifier("Start")())
     naoapp.hasActivity.add(mm_root.getEClassifier("Finish")())
     return naoapp
 
 
-def snips_dict_to_eobject(result: SnipsResult):  # TODO: return
+def snips_result_to_eobject(result: SnipsResult) -> EObject:
+    """Convert given `SnipsResult` to an `EObject` of the corresponding `EClass`."""
     assert mm_root is not None
     if not result:
         raise ValueError("SnipsResult argument should evaluate to True")
@@ -68,7 +73,7 @@ def snips_dict_to_eobject(result: SnipsResult):  # TODO: return
     return eobject
 
 
-def _getEAttribute(eclass, name) -> pyecore.ecore.EAttribute:
+def _getEAttribute(eclass: EClass, name: str) -> pyecore.ecore.EAttribute:
     for attr in eclass.eAttributes:
         if attr.name == name:
             return attr
@@ -76,6 +81,7 @@ def _getEAttribute(eclass, name) -> pyecore.ecore.EAttribute:
 
 
 def main(argv: List[str]) -> None:
+    """Main function that calls the YAML generator."""
     parser = utils.ArgumentParser()
     parser.add_ecore_root_argument("-r", "--root")
 
@@ -83,7 +89,13 @@ def main(argv: List[str]) -> None:
     generate_yaml()
 
 
-def generate_yaml():
+def generate_yaml() -> None:
+    """Generate YAML intent and entity file skeletons from root metamodel.
+
+    Intents are saved in ./intent_{name}.yaml files if the utterance file exists for the
+    given name.
+    Entities are saved in ./entity_{name}.yaml files.
+    """
     import yaml
     import networkx as nx
 
@@ -144,18 +156,6 @@ def generate_yaml():
             d = data["d"]
             with open("entity_" + d["name"] + ".yaml", "w") as f:
                 print(dump(d).strip(), file=f)
-    return g
-
-
-def _eattribute_etype_to_entity_name(eattribute):
-    if not isinstance(eattribute.eType, pyecore.ecore.EProxy):
-        return eattribute.eType.name
-
-    if eattribute.name[0] == "b" and eattribute.name[1].isupper():
-        # bDetectForever -> DetectForever
-        return eattribute.name[1:]
-    else:
-        return eattribute.name[0].upper() + eattribute.name[1:]
 
 
 def _eattribute_to_dict(eattribute):
@@ -187,19 +187,6 @@ def _enum_to_dict(enum):
         "automatically_extensible": False,
         "values": [literal.name for literal in enum.eLiterals],
     }
-
-
-def _get_utterances(eclass_name: str) -> List[str]:
-    # TODO: path configurable
-    data_file = _utterances_filename(eclass_name)
-    if not data_file:
-        return []
-
-    # TODO
-    from r4a_nao_nlp.train import expand_file
-
-    with open(data_file) as f:
-        return list(expand_file(f))
 
 
 def _utterances_filename(eclass_name: str) -> Optional[str]:

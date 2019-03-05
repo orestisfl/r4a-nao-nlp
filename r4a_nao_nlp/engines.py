@@ -274,7 +274,7 @@ class SnipsResult(tuple):
     def to_eobject(self):
         from r4a_nao_nlp import ecore
 
-        return ecore.snips_dict_to_eobject(self)
+        return ecore.snips_result_to_eobject(self)
 
     def __bool__(self):
         return self.name is not None
