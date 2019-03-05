@@ -27,6 +27,14 @@ class SubSentence:
         self.argms: Dict[str, Span] = {}
         self._parse_tags(tags)
         assert self.verb
+        # XXX: maybe keep in self.verb?
+        # http://universaldependencies.org/docs/en/dep/compound-prt.html
+        self.particles: Set[Token] = set(
+            child
+            for token in self.verb
+            for child in token.children
+            if child.dep_ == "prt"
+        )
 
         self.modifiers: Dict[SubSentence, Tuple[Span, Span]] = {}
         self.modifying: Dict[SubSentence, Tuple[Span, Span]] = {}
@@ -184,7 +192,11 @@ class SubSentence:
                 f"Argument 'item' has incorrect type: expected {Token}, got {type(item)}"
             )
 
-        return item in self.verb or any(item in span for span in self.args.values())
+        return (
+            item in self.verb
+            or item in self.particles
+            or any(item in span for span in self.args.values())
+        )
 
     def __str__(self):
         return " ".join(self.tags)
