@@ -7,6 +7,7 @@ import networkx as nx
 
 if TYPE_CHECKING:
     from r4a_nao_nlp.typing import Token, Node
+    from pyecore.ecore import EObject
     from numpy import ndarray
 
 
@@ -107,6 +108,11 @@ class Graph(nx.DiGraph):
             y = -(2 * data["sent_idx"] + is_mod)
             result[node] = numpy.array((x, y))
         return result
+
+    def to_eobject(self, name: Optional[str] = None) -> EObject:
+        from r4a_nao_nlp import ecore
+
+        return ecore.from_nodes(self, name)
 
 
 def _data_label(data: Dict[str, List[Token]]) -> str:

@@ -2,26 +2,52 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Iterable, List, Optional
 
 import pyecore
-from pyecore.ecore import EClass, EEnum
+from pyecore.ecore import EClass, EEnum, EObject
+from pyecore.resources import URI, ResourceSet
 
 from r4a_nao_nlp import utils
 
 if TYPE_CHECKING:
-    from r4a_nao_nlp.typing import SnipsResult
+    from r4a_nao_nlp.typing import SnipsResult, Node
 
 logger = utils.create_logger(__name__)
 mm_root = None
 
 
 def init_root(path_to_ecore: str) -> None:
-    global mm_root
-    from pyecore.resources import URI, ResourceSet
-
     logger.debug("Initializing mm_root from %s", path_to_ecore)
+
+    global mm_root
     mm_root = ResourceSet().get_resource(URI(path_to_ecore)).contents[0]
+
+
+def save_objects(*objects: EObject, path: str = "./out.highlevelnaoapp") -> None:
+    resource = ResourceSet().create_resource(URI(path))
+    for obj in objects:
+        resource.append(obj)
+    resource.save()
+
+
+def from_nodes(nodes: Iterable[Node], name: Optional[str] = None) -> EObject:
+    naoapp = create_nao_app(name)
+
+    for node in nodes:
+        if isinstance(node, str):
+            continue
+
+        naoapp.hasActivity.insert(-1, node.parsed.to_eobject())
+
+    return naoapp
+
+
+def create_nao_app(name: str = "r4a_nao_nlp app") -> EObject:
+    naoapp = mm_root.getEClassifier("NaoApp")(name=name)
+    naoapp.hasActivity.add(mm_root.getEClassifier("Start")())
+    naoapp.hasActivity.add(mm_root.getEClassifier("Finish")())
+    return naoapp
 
 
 def snips_dict_to_eobject(result: SnipsResult):  # TODO: return
