@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from functools import partial, reduce
 from itertools import chain, combinations, permutations
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Container, Dict, Iterable, List, Optional, Set, Tuple
 
 from r4a_nao_nlp import utils
 from r4a_nao_nlp.engines import shared
@@ -92,16 +92,14 @@ class SubSentence:
             self.verb, other.verb, *other.args.values()
         )
 
-    def parse(self, others: Optional[List[SubSentence]] = None) -> JsonDict:
+    def parse(self, others: Container[SubSentence] = ()) -> JsonDict:
         tokens = list(
             filter(
                 partial(
                     self._parse_include_token,
                     modifiers=[
                         modifier for modifier in self.modifiers if modifier in others
-                    ]
-                    if others is not None
-                    else [],
+                    ],
                 ),
                 self.sent,
             )
