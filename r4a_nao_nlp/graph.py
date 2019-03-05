@@ -1,12 +1,13 @@
 # TODO: docstrings
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import networkx as nx
 
 if TYPE_CHECKING:
-    from r4a_nao_nlp.typing import Token
+    from r4a_nao_nlp.typing import Token, Node
+    from numpy import ndarray
 
 
 class Graph(nx.DiGraph):
@@ -14,7 +15,15 @@ class Graph(nx.DiGraph):
         self.sent_idx = 0
         super().__init__(*args, **kwargs)
 
-    def add_edge(self, a, words, b=None, words_after=None, *args, **kwargs):
+    def add_edge(
+        self,
+        a: Node,
+        words: List[Token],
+        b: Optional[Node] = None,
+        words_after: Optional[List[Token]] = None,
+        *args,
+        **kwargs,
+    ) -> None:
         if b is None:
             if words_after:
                 raise ValueError("Got words_after but b is None")
@@ -26,29 +35,30 @@ class Graph(nx.DiGraph):
         if words_after:
             super().add_edge(b, self.sent_end, label=words_after, *args, **kwargs)
 
-    def add_node(self, *args, **kwargs):
+    def add_node(self, node: Node, **kwargs) -> None:
         kwargs.setdefault("sent_idx", self.sent_idx)
-        super().add_node(*args, **kwargs)
+        super().add_node(node, **kwargs)
 
     @property
-    def prev_end(self):
+    def prev_end(self) -> str:
         return self._sent_end(self.sent_idx - 1) if self.sent_idx > 0 else None
 
     @property
-    def sent_end(self):
+    def sent_end(self) -> str:
         return self._sent_end(self.sent_idx)
 
     @staticmethod
-    def _sent_end(idx):
+    def _sent_end(idx) -> str:
         return f"End-{idx}"
 
-    def connect_prev(self, node):
+    def connect_prev(self, node: Node) -> None:
         prev_end = self.prev_end
         if prev_end:
             self.add_edge(prev_end, "", node)
 
     # TODO: Nodes in same height + vertical height?
-    def plot(self, filename: str = "out.pdf") -> None:
+    # TODO: Return
+    def plot(self, filename: str = "out.pdf"):
         # TODO: catch import exceptions
         import matplotlib.pyplot as plt
         from adjustText import adjust_text
@@ -82,7 +92,7 @@ class Graph(nx.DiGraph):
         plt.close()
         return node_collection, edge_collection
 
-    def _create_pos(self):
+    def _create_pos(self) -> Dict[Node, ndarray]:
         import numpy
 
         result = {}
