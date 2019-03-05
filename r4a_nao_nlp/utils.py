@@ -3,7 +3,7 @@ import argparse
 import logging
 from typing import Callable, Optional
 
-_logging_handler = logging.StreamHandler()
+_LOGGING_HANDLER = logging.StreamHandler()
 
 
 def init_logging() -> None:
@@ -13,8 +13,8 @@ def init_logging() -> None:
     original_handler.setLevel(logging.WARNING)
     original_handler.set_name("original")
 
-    _logging_handler.set_name("r4a_nao_nlp")
-    _logging_handler.formatter = original_handler.formatter
+    _LOGGING_HANDLER.set_name("r4a_nao_nlp")
+    _LOGGING_HANDLER.formatter = original_handler.formatter
 
 
 def create_logger(name: str) -> logging.Logger:
@@ -24,13 +24,13 @@ def create_logger(name: str) -> logging.Logger:
 
     logger = logging.getLogger(name)
     # Should be unique
-    logger.addHandler(_logging_handler)
+    logger.addHandler(_LOGGING_HANDLER)
     return logger
 
 
 class ArgumentParser(argparse.ArgumentParser):
-    """Helper object that wraps argparse.ArgumentParser to provide common operations used
-    in this package."""
+    """Helper object that wraps argparse.ArgumentParser to provide common operations
+    used in this package."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -47,7 +47,7 @@ class ArgumentParser(argparse.ArgumentParser):
         namespace = super().parse_args(*args, **kwargs)
 
         level = max(3 - namespace.verbose, 0) * 10
-        _logging_handler.setLevel(level)
+        _LOGGING_HANDLER.setLevel(level)
         logging.root.setLevel(level)
 
         if self._ecore_dest:
