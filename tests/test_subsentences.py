@@ -14,8 +14,13 @@ from r4a_nao_nlp.graph import Graph
 
 @pytest.fixture(scope="module", autouse=True)
 def init():
+    code = shared.init.__wrapped__.__code__
+    kwargs = {a: None for a in code.co_varnames[: code.co_argcount] if a != "self"}
     # We only need spacy
-    shared.init(snips_path=None, srl_predictor_path=None, spacy_lang="en_core_web_sm")
+    kwargs["spacy_lang"] = "en_core_web_sm"
+    print(f"shared.init with kwargs = {kwargs}")
+    shared.init(**kwargs)
+
     mock = MagicMock(score=1.0)
     mock.__float__.return_value = 1.0
     mock.__gt__.return_value = True
