@@ -1,7 +1,7 @@
-"""Common operations relating to logging and argument parsing."""
+"""Miscellaneous utilities."""
 import argparse
 import logging
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 _LOGGING_HANDLER = logging.StreamHandler()
 
@@ -86,6 +86,21 @@ def timed(fun: Callable, logger: Optional[logging.Logger] = None) -> Callable:
             diff,
         )
         return result
+
+    return wrapper
+
+
+def other_isinstance(fun: Callable, instance: Optional[type] = None):
+    """Argument instance checker decorator."""
+
+    def wrapper(arg1, arg2, *args, **kwargs):
+        if instance is None:
+            if not isinstance(arg2, type(arg1)):
+                return NotImplemented
+        elif not isinstance(arg2, instance):
+            return NotImplemented
+
+        return fun(arg1, arg2, *args, **kwargs)
 
     return wrapper
 

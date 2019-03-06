@@ -202,10 +202,8 @@ class SubSentence:
         return " ".join(self.tags)
 
     # Used for sorting
+    @utils.other_isinstance
     def __lt__(self, other: object):
-        if not isinstance(other, SubSentence):
-            return NotImplemented
-
         if self.verb.start == other.verb.start:
             return self.verb.end < other.verb.end
         else:

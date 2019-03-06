@@ -292,10 +292,8 @@ class SnipsResult(tuple):
     def __iter__(self):
         return iter(self.slots)
 
+    @utils.other_isinstance
     def __lt__(self, other: object):
-        if not isinstance(other, SnipsResult):
-            return NotImplemented
-
         return self.score < other.score
 
     def __str__(self):
