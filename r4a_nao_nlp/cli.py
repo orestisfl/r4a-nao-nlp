@@ -56,20 +56,31 @@ def process_document(s: str) -> Graph:
 
     g = None
     for sent in doc.sents:
-        logger.debug("Processing sent: %s", str(sent))
+        logger.debug("Processing sent: %s", sent)
 
         srl_result = shared.srl_get()
 
         combinations = subsentence.create_combinations(sent, srl_result)
         logger.debug("Final combinations: %s", ", ".join(str(c) for c in combinations))
         if combinations:
-            scores = [calc_score(c.parsed) for c in combinations]
-            max_idx = max(enumerate(scores), key=itemgetter(1))[0]
+            max_idx, max_score = max(
+                enumerate(calc_score(c.parsed) for c in combinations), key=itemgetter(1)
+            )
+            max_combination = combinations[max_idx]
 
         simple = shared.parse(str(sent))
-        # TODO: modifier? configurable?
-        if not combinations or scores[max_idx] < 0.95 * simple.score:
-            logger.debug("Prefering full sentence")
+        if (
+            not combinations
+            or not max_score
+            or (
+                max_score < simple.score
+                # Prefer a complex result with multiple intents
+                and len(max_combination) == 1
+                # If the result is the same anyway, don't use the full sentence
+                and str(max_combination.parsed[0]) != str(simple)
+            )
+        ):
+            logger.debug("Preferring full sentence")
             if g is None:
                 from r4a_nao_nlp.graph import Graph
 
@@ -77,11 +88,17 @@ def process_document(s: str) -> Graph:
             else:
                 g.sent_idx += 1
 
+            if not simple:
+                logger.warn("Could not parse intent from sentence: %s", sent)
+                g.add_edge(g.prev_end, str(sent))
+                continue
+
             node = subsentence.SubSentence(["B-V"] + (len(sent) - 1) * ["I-V"], sent)
+            node.parsed = simple
             g.add_node(node, idx=0, idx_main=0)
             g.add_edge(node, "")
         else:
-            g = combinations[max_idx].to_graph(g)
+            g = max_combination.to_graph(g)
 
     return g
 
