@@ -1,6 +1,7 @@
 """Miscellaneous utilities."""
 import argparse
 import logging
+from functools import wraps
 from typing import Any, Callable, Optional
 
 _LOGGING_HANDLER = logging.StreamHandler()
@@ -75,6 +76,7 @@ def timed(fun: Callable, logger: Optional[logging.Logger] = None) -> Callable:
     module = getmodule(fun)
     logger = logger or module.logger
 
+    @wraps(fun)
     def wrapper(*args, **kwargs):
         start = time()
         result = fun(*args, **kwargs)
@@ -93,6 +95,7 @@ def timed(fun: Callable, logger: Optional[logging.Logger] = None) -> Callable:
 def other_isinstance(fun: Callable, instance: Optional[type] = None):
     """Argument instance checker decorator."""
 
+    @wraps(fun)
     def wrapper(arg1, arg2, *args, **kwargs):
         if instance is None:
             if not isinstance(arg2, type(arg1)):
