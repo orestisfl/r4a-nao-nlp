@@ -36,7 +36,7 @@ fi
 git diff --cached --name-only --diff-filter=d | while read FILE; do
     echo "$FILE"
     check_fmt "$FILE" || exit $?
-done || exit $?
+done
 
 tmpdir="$(mktemp -d)/"
 git checkout-index --prefix="$tmpdir" $(git ls-files 'test*.py' | grep -v 'test_full.py')
