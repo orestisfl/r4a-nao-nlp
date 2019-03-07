@@ -90,6 +90,7 @@ class Shared:
                 stdin=PIPE,
                 stdout=PIPE,
             )
+            self._srl_count = 0
             atexit.register(cleanup, self._srl_server)
 
         if snips_path:
@@ -207,9 +208,18 @@ class Shared:
         logger.debug("SRL put: %s", s)
         self._srl_server.stdin.write((s + "\0\n").encode())
         self._srl_server.stdin.flush()
+        self._srl_count += 1
 
     def srl_get(self) -> JsonDict:
+        if self._srl_count == 0:
+            raise ValueError("srl_get called without srl_put")
+
+        self._srl_count -= 1
         return json.loads(self._srl_server.stdout.readline().decode())
+
+    def srl_clear(self) -> None:
+        while self._srl_count > 0:
+            self.srl_get()
 
     def spacy(self, s: str) -> Doc:
         assert self._spacy
