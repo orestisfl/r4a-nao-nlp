@@ -176,10 +176,10 @@ def verify_graph(
             assert node == s[idx]
         else:
             assert isinstance(node, str)
-            assert node == "End-0"
+            assert node in ("Start", "End-0")
 
     # Assume only single sentence:
-    assert len(g) == len(s) + 1
+    assert len(g) == len(s) + 2
     assert g.sent_idx == 0
     assert g.sent_end == "End-0"
     assert g.sent_end in g

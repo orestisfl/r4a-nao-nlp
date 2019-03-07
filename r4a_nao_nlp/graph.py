@@ -14,26 +14,17 @@ class Graph(nx.DiGraph):
     def __init__(self, *args, **kwargs):
         self.sent_idx = 0
         super().__init__(*args, **kwargs)
+        self.add_node("Start")
 
     def add_edge(
-        self,
-        a: Node,
-        words: List[Token],
-        b: Optional[Node] = None,
-        words_after: Optional[List[Token]] = None,
-        *args,
-        **kwargs,
+        self, a: Node, words: List[Token], b: Optional[Node] = None, **kwargs
     ) -> None:
         if b is None:
-            if words_after:
-                raise ValueError("Got words_after but b is None")
             # Make sure that sent_end is in the graph with the correct sent_idx
             b = self.sent_end
             self.add_node(b)
 
-        super().add_edge(a, b, label=words, *args, **kwargs)
-        if words_after:
-            super().add_edge(b, self.sent_end, label=words_after, *args, **kwargs)
+        super().add_edge(a, b, label=words, **kwargs)
 
     def add_node(self, node: Node, **kwargs) -> None:
         kwargs.setdefault("sent_idx", self.sent_idx)
@@ -41,7 +32,7 @@ class Graph(nx.DiGraph):
 
     @property
     def prev_end(self) -> str:
-        return self._sent_end(self.sent_idx - 1) if self.sent_idx > 0 else None
+        return self._sent_end(self.sent_idx - 1) if self.sent_idx > 0 else "Start"
 
     @property
     def sent_end(self) -> str:
@@ -51,10 +42,8 @@ class Graph(nx.DiGraph):
     def _sent_end(idx) -> str:
         return f"End-{idx}"
 
-    def connect_prev(self, node: Node) -> None:
-        prev_end = self.prev_end
-        if prev_end:
-            self.add_edge(prev_end, "", node)
+    def connect_prev(self, node: Node, words: List[Token]) -> None:
+        self.add_edge(self.prev_end, words, node)
 
     # TODO: Nodes in same height + vertical height?
     # TODO: Return
@@ -106,6 +95,7 @@ class Graph(nx.DiGraph):
                 is_mod = "idx_main" not in data
             y = -(2 * data["sent_idx"] + is_mod)
             result[node] = numpy.array((x, y))
+        result["Start"] = numpy.array((0, 1))
         return result
 
     def to_eobject(self, name: Optional[str] = None) -> EObject:

@@ -1,8 +1,10 @@
 # TODO: docstrings
 from __future__ import annotations
 
+from contextlib import suppress
 from functools import reduce
 from itertools import chain, combinations, permutations
+from logging import DEBUG, WARN
 from typing import TYPE_CHECKING, Container, Dict, Iterable, List, Optional, Set, Tuple
 
 from r4a_nao_nlp import utils
@@ -132,12 +134,14 @@ class SubSentence:
             )
 
         self.parsed = parse(argms.values())
+        self.used_argms = tuple(argms.keys())
         expected_result = str(self.parsed) if self.parsed else None
         # At n_argms = 0 no modifier is included, at n_argms = len(argms) every modifier
         # would be included.
         for n_argms in range(len(argms) - 1, -1, -1):
-            for c in combinations(argms.values(), n_argms):
-                current_max = parse(c)
+            for c in combinations(argms, n_argms):
+                c = tuple(c)
+                current_max = parse(argms[key] for key in c)
                 if current_max and (
                     # Preserve the same parse result with any amount of modifiers so
                     # that we don't end up using a simpler request. If the original
@@ -150,6 +154,7 @@ class SubSentence:
                     )
                 ):
                     self.parsed = current_max
+                    self.used_argms = c
         return self.parsed
 
     def _parse_from_token_indices(self, indices: Container[int]) -> SnipsResult:
@@ -282,11 +287,11 @@ class Combination:
         else:
             graph.sent_idx += 1
 
-        modifiers = [
+        modifiers = set(
             subsentence
             for subsentence in self
             if any(other for other in subsentence.modifying if other in self)
-        ]
+        )
         rest = [subsentence for subsentence in self if subsentence not in modifiers]
 
         connecting_tokens = [
@@ -294,7 +299,7 @@ class Combination:
             for token in self.sent
             if not any(
                 token in subsentence
-                or any(token in span for span in subsentence.argms.values())
+                or any(token in span for span in subsentence.used_argms)
                 for subsentence in self
             )
         ]
@@ -304,7 +309,41 @@ class Combination:
         for idx, subsentence in enumerate(self):
             graph.add_node(subsentence, idx=idx)
 
-        graph.connect_prev(rest[0])
+        for subsentence in self:
+            for key in modifiers.intersection(subsentence.modifiers.keys()):
+                (inter, argm) = subsentence.modifiers[key]
+                words_before = [
+                    token
+                    for token in self.sent.doc[argm.start : inter.start]
+                    if token not in key
+                ]
+                words_after = [
+                    token
+                    for token in self.sent.doc[inter.end + 1 : argm.end]
+                    if token not in key
+                ]
+                words = words_before or words_after
+                graph.add_edge(key, words or None, subsentence)
+
+                for token in words:
+                    with suppress(ValueError):
+                        connecting_tokens.remove(token)
+                        logger.debug("connecting_tokens: removed %s", token)
+
+                problem = words_before and words_after
+                logger.log(
+                    WARN if problem else DEBUG,
+                    "Modifier subsentence '%s' with words '%s' and '%s'%s",
+                    key,
+                    words_before,
+                    words_after,
+                    ", skipping words_after" if problem else "",
+                )
+
+        graph.connect_prev(
+            rest[0],
+            [token for token in connecting_tokens if token.i < rest[0].verb.start],
+        )
 
         for idx, subsentence in enumerate(rest):
             if subsentence is rest[-1]:
@@ -329,27 +368,6 @@ class Combination:
                 other_words,
             )
 
-            for key, value in subsentence.modifiers.items():
-                if key in modifiers:
-                    (inter, argm) = value
-                    words_before = [
-                        token
-                        for token in self.sent.doc[argm.start : inter.start]
-                        if token not in key
-                    ] or None
-                    words_after = [
-                        token
-                        for token in self.sent.doc[inter.end + 1 : argm.end]
-                        if token not in key
-                    ] or None
-                    graph.add_edge(key, words_before, subsentence, words_after)
-
-                    logger.debug(
-                        "Modifier subsentence '%s' with words '%s' and '%s'",
-                        key,
-                        words_before,
-                        words_after,
-                    )
         return graph
 
     def __iter__(self):
