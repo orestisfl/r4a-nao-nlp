@@ -8,6 +8,7 @@ The output of the following annotators is used:
 from __future__ import annotations
 
 from collections import deque
+from functools import reduce
 from itertools import chain
 from threading import Thread
 from typing import TYPE_CHECKING, Any, Deque, Dict, Iterable, List, Tuple
@@ -94,14 +95,13 @@ class CorefThreads:
             )
         )
 
-    # TODO: Doc
     def join(self) -> CorefDict:
         if self._joined is None:
             for thread in self._threads:
                 thread.join()
-            self._joined = getattr(self, self._threads[0].name)
-            for thread in self._threads[1:]:
-                self._joined = _merge_corefs(self._joined, getattr(self, thread.name))
+            self._joined = reduce(
+                _merge_corefs, (getattr(self, thread.name) for thread in self._threads)
+            )
         return self._joined
 
 
