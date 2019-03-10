@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from contextlib import suppress
 from functools import reduce
-from itertools import chain, combinations, permutations
+from itertools import chain, permutations
 from logging import DEBUG, WARN
 from typing import TYPE_CHECKING, Container, Dict, Iterable, List, Optional, Set, Tuple
 
@@ -136,25 +136,21 @@ class SubSentence:
         self.parsed = parse(argms.values())
         self.used_argms = tuple(argms.keys())
         expected_result = str(self.parsed) if self.parsed else None
-        # At n_argms = 0 no modifier is included, at n_argms = len(argms) every modifier
-        # would be included.
-        for n_argms in range(len(argms) - 1, -1, -1):
-            for c in combinations(argms, n_argms):
-                c = tuple(c)
-                current_max = parse(argms[key] for key in c)
-                if current_max and (
-                    # Preserve the same parse result with any amount of modifiers so
-                    # that we don't end up using a simpler request. If the original
-                    # intent was None, skip this check to prefer ending up with any kind
-                    # of non-None result.
-                    not expected_result
-                    or (
-                        self.parsed <= current_max
-                        and str(current_max) == expected_result
-                    )
-                ):
-                    self.parsed = current_max
-                    self.used_argms = c
+        # Iterate in reversed order to prefer using less ARGMs which could happen with a
+        # perfect score of 1.0 (Snips' DeterministicIntentParser returns 1.0 when it
+        # succeeds).
+        for c in reversed(utils.PowerSet(argms, r_stop=-1)):
+            c = tuple(c)
+            current_max = parse(argms[key] for key in c)
+            if current_max and (
+                # Preserve the same parse result with any amount of modifiers so that we
+                # don't end up using a simpler request. If the original intent was None,
+                # skip this check to prefer ending up with any kind of non-None result.
+                not expected_result
+                or (self.parsed <= current_max and str(current_max) == expected_result)
+            ):
+                self.parsed = current_max
+                self.used_argms = c
         return self.parsed
 
     def _parse_from_token_indices(self, indices: Container[int]) -> SnipsResult:
@@ -200,15 +196,14 @@ class SubSentence:
                 if indices:
                     corefs.append((cluster, coref, indices))
 
-        for r in range(1, len(corefs) + 1):
-            for c in combinations(corefs, r):
-                resolved: List[Iterable[Token]] = [[token] for token in tokens]
-                for (cluster, coref, overlap) in c:
-                    resolved[overlap[0]] = cluster.main
-                    for idx in overlap[1:]:
-                        resolved[idx] = []
+        for c in utils.PowerSet(corefs, r_start=1):
+            resolved: List[Iterable[Token]] = [[token] for token in tokens]
+            for (cluster, coref, overlap) in c:
+                resolved[overlap[0]] = cluster.main
+                for idx in overlap[1:]:
+                    resolved[idx] = []
 
-                result.add((r, tuple(chain.from_iterable(resolved))))
+            result.add((len(c), tuple(chain.from_iterable(resolved))))
         return result
 
     def _argm_with_token(self, token: Token) -> Optional[Span]:
@@ -430,20 +425,19 @@ def create_combinations_from_subsentences(
     subsentences: List[SubSentence]
 ) -> Iterable[Combination]:
     contains = {subsentence: False for subsentence in subsentences}
-    for r in range(len(subsentences), 0, -1):
-        for combination_tuple in combinations(subsentences, r=r):
-            if all(contains[subsentence] for subsentence in combination_tuple):
-                continue
+    for combination_tuple in reversed(utils.PowerSet(subsentences, r_start=1)):
+        if all(contains[subsentence] for subsentence in combination_tuple):
+            continue
 
-            combination = Combination(combination_tuple)
-            if combination.compatible:
-                yield combination
+        combination = Combination(combination_tuple)
+        if combination.compatible:
+            yield combination
 
-                for subsentence in combination:
-                    contains[subsentence] = True
-                if all(contains.values()):
-                    # XXX: do we return too early here?
-                    return
+            for subsentence in combination:
+                contains[subsentence] = True
+            if all(contains.values()):
+                # XXX: do we return too early here?
+                return
 
 
 # vim:ts=4:sw=4:expandtab:fo-=t:tw=88

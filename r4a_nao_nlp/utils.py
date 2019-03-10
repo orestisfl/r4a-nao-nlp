@@ -2,7 +2,8 @@
 import argparse
 import logging
 from functools import wraps
-from typing import Any, Callable, Optional
+from itertools import chain, combinations
+from typing import Callable, Collection, Iterable, Iterator, Optional
 
 _LOGGING_HANDLER = logging.StreamHandler()
 
@@ -106,6 +107,33 @@ def other_isinstance(fun: Callable, instance: Optional[type] = None):
         return fun(arg1, arg2, *args, **kwargs)
 
     return wrapper
+
+
+class PowerSet:
+    """A reversible iterable that produces all possible r-length combinations of a
+    collection's elements inside a specified range of r values.
+
+    - `r_stop` is the maximum r value to use. If `r_stop <= 0`, its absolute value will
+      be subtraced from the `collection`'s length.
+    - `r_start` is the minimum r value to use. If `r_start < 0`, its absolute value will
+      be subtraced from the `collection`'s length.
+    """
+
+    def __init__(self, collection: Collection, r_stop: int = 0, r_start: int = 0):
+        self._stop = r_stop if r_stop > 0 else len(collection) + 1 + r_stop
+        self._start = r_start if r_start >= 0 else len(collection) + 1 + r_start
+        self._collection = collection
+
+    def __iter__(self):
+        return self._iter(range(self._start, self._stop))
+
+    def __reversed__(self):
+        return self._iter(reversed(range(self._start, self._stop)))
+
+    def _iter(self, r_range: Iterable) -> Iterator:
+        return iter(
+            chain.from_iterable(combinations(self._collection, r) for r in r_range)
+        )
 
 
 # vim:ts=4:sw=4:expandtab:fo-=t:tw=88
