@@ -1,4 +1,4 @@
-# TODO: docstrings
+"""Script that prepares data and trains the snips nlu engine."""
 from __future__ import annotations
 
 import json
@@ -74,6 +74,12 @@ def parse_command_line(argv: List[str]) -> Namespace:
 
 @contextmanager
 def dest_context_manager(dest: Optional[str]) -> Iterator[str]:
+    """Prepare destination directory.
+
+    If `dest` is `None`, a new temporary directory is yielded, which will be deleted on
+    context exit. If not, the specified directory is cleared and yielded. It will
+    persist on context exit.
+    """
     if dest is None:
         with TemporaryDirectory() as tmp:
             yield tmp
@@ -89,6 +95,12 @@ def dest_context_manager(dest: Optional[str]) -> Iterator[str]:
 
 
 def convert_data(src: str, dest: str) -> str:
+    """Copy intents, entities and utterances to destination folder.
+
+    Only intents that have corresponding utterances_* files are copied to avoid training
+    on intent files without any values. Utterances are brace-expanded. All entities are
+    copied to the destination without being modified.
+    """
     utterance_files = glob(os.path.join(src, "utterances_*"))
     for filename in utterance_files:
         intent_basename = "intent_{intent_name}.yaml".format(
@@ -116,6 +128,9 @@ def convert_data(src: str, dest: str) -> str:
 
 
 def expand_file(f: TextIO) -> Iterator[str]:
+    """Perform brace expansion on specified file object.
+
+    Uses the `braceexpand` module to expand braces for each line read from the file."""
     from braceexpand import braceexpand
 
     for line in f:
@@ -138,6 +153,7 @@ def json_save(json_dict: JsonDict, filename: str) -> None:
 
 
 def save_engine(engine: SnipsNLUEngine, path: str) -> None:
+    """Save trained snips nlu engine in a tar.gz archive."""
     with tarfile.open(path, "w:gz") as archive:
         with TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "engine")
