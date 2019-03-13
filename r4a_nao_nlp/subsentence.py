@@ -102,7 +102,7 @@ class SubSentence:
             self.verb, other.verb, *other.args.values()
         )
 
-    def parse(self, others: Container[SubSentence] = ()) -> JsonDict:
+    def parse(self, others: Container[SubSentence] = ()) -> SnipsResult:
         modifiers: List[SubSentence] = [
             modifier for modifier in self.modifiers if modifier in others
         ]
@@ -246,7 +246,7 @@ class Combination:
         self.subsentences: List[SubSentence] = sorted(subsentences)
         self.sent: Span = self.subsentences[0].sent
         self._compatible: Optional[bool] = None
-        self._parsed: Optional[List[JsonDict]] = None
+        self._parsed: Optional[List[SnipsResult]] = None
 
         assert all(
             subsentence.sent == self.sent for subsentence in self.subsentences[1:]
@@ -267,7 +267,7 @@ class Combination:
         return True
 
     @property
-    def parsed(self) -> List[JsonDict]:
+    def parsed(self) -> List[SnipsResult]:
         if self._parsed is None:
             self._parsed = [
                 subsentence.parse(others=self.subsentences) for subsentence in self
