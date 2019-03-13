@@ -1,2 +1,3 @@
 {Detect,Detecting,Listen for,Listening for} sound{,s} {for [duration],[bDetectForever](forever),[bDetectForever](indefinitely)}
 {Detect,Hear} someone talking
+Someone says {something,QUOTE}
