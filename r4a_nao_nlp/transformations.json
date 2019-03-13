@@ -61,5 +61,26 @@
     "slots": {
       "volume:snips/number": 100
     }
+  },
+  "HeadMotionTurn": {
+    "name": "HeadMotion"
+  },
+  "HeadMotionUp": {
+    "name": "HeadMotion",
+    "slots": {
+      "direction:HeadDirection": "UP"
+    }
+  },
+  "HeadMotionDown": {
+    "name": "HeadMotion",
+    "slots": {
+      "direction:HeadDirection": "Down"
+    }
+  },
+  "HeadMotionRestore": {
+    "name": "HeadMotion",
+    "slots": {
+      "direction:HeadDirection": "NEUTRAL"
+    }
   }
 }

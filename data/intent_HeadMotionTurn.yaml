@@ -1,0 +1,17 @@
+---
+automatically_extensible: false
+name: HeadDirection
+type: entity
+values:
+  - LEFT
+  - RIGHT
+  # - UP
+  # - DOWN
+  # - NEUTRAL
+
+---
+name: HeadMotionTurn
+slots:
+  - entity: HeadDirection
+    name: direction
+type: intent
