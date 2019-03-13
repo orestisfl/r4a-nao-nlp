@@ -5,10 +5,11 @@ import datetime
 import json
 import os
 import tarfile
-from functools import lru_cache
-from operator import itemgetter
+from dataclasses import dataclass
+from functools import lru_cache, total_ordering
+from math import isclose
 from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING, Dict, Iterable, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Dict, Iterable, Optional, Sequence, Tuple, Union
 
 from r4a_nao_nlp import utils
 
@@ -21,6 +22,8 @@ if TYPE_CHECKING:
         SnipsNLUEngine,
         Token,
     )
+
+    SlotValue = Union[datetime.timedelta, float, str]
 
 logger = utils.create_logger(__name__)
 # XXX: Can use pkg_resources to find distributed resources:
@@ -136,7 +139,7 @@ class Shared:
     def parse(self, s: str) -> SnipsResult:
         assert self._engine
 
-        result = SnipsResult(self._parse(s))
+        result = SnipsResult.from_parsed(self._parse(s))
         logger.debug("Result = '%s'", result)
         return result
 
@@ -175,7 +178,7 @@ class Shared:
                 offset += len(replacement) - len(raw)
             slot["range"]["end"] += offset
 
-        snips_result = SnipsResult(result)
+        snips_result = SnipsResult.from_parsed(result)
         logger.debug("Result = '%s'", snips_result)
         return snips_result
 
@@ -262,30 +265,29 @@ class Shared:
         )
 
 
-# TODO: https://docs.python.org/3/library/dataclasses.html
-class SnipsResult(tuple):
-    """Immutable convenience object that holds the output of the SNIPS engine"""
+@total_ordering
+@dataclass(order=False, frozen=True)
+class SnipsResult:
+    """Dataclass that holds the output of the SNIPS engine."""
 
-    __slots__ = []
+    score: float = 0.0
+    name: Optional[str] = None
+    slots: Tuple[SnipsSlot] = ()
 
-    def __new__(cls, parsed: Optional[JsonDict] = None):
+    @classmethod
+    def from_parsed(cls, parsed: Optional[JsonDict] = None):
         if (
             parsed is None
             or parsed["intent"] is None
             or parsed["intent"]["intentName"] is None
         ):
-            score = 0.0
-            name = None
-            slots = tuple()
-        else:
-            score = parsed["intent"]["probability"]
-            name = parsed["intent"]["intentName"]
-            slots = tuple(SnipsSlot(slot) for slot in parsed["slots"])
-        return tuple.__new__(cls, (score, name, slots))
+            return cls()
 
-    score = property(itemgetter(0))
-    name = property(itemgetter(1))
-    slots = property(itemgetter(2))
+        return cls(
+            score=parsed["intent"]["probability"],
+            name=parsed["intent"]["intentName"],
+            slots=tuple(SnipsSlot.from_parsed(slot) for slot in parsed["slots"]),
+        )
 
     def to_eobject(self) -> EObject:
         """Convert to an `EObject` of the corresponding `EClass`."""
@@ -307,8 +309,8 @@ class SnipsResult(tuple):
         return self.score < other.score
 
     @utils.other_isinstance
-    def __le__(self, other: object):
-        return self.score <= other.score
+    def __eq__(self, other: object):
+        return isclose(self.score, other.score, abs_tol=0.001)
 
     def __str__(self):
         return "{intent}({args})".format(
@@ -316,20 +318,23 @@ class SnipsResult(tuple):
         )
 
 
-class SnipsSlot(tuple):
-    """Immutable convenience object that holds the snips output of a single slot"""
+@dataclass(order=False, frozen=True)
+class SnipsSlot:
+    """Dataclass that holds the snips output of a single slot."""
 
-    __slots__ = []
+    range: range
+    value: SlotValue
+    entity: str
+    name: str
 
-    def __new__(cls, parsed: JsonDict):
-        r = range(parsed["range"]["start"], parsed["range"]["end"])
-        value = _resolve_value(parsed["value"])
-        return tuple.__new__(cls, (r, value, parsed["entity"], parsed["slotName"]))
-
-    range = property(itemgetter(0))
-    value = property(itemgetter(1))
-    entity = property(itemgetter(2))
-    name = property(itemgetter(3))
+    @classmethod
+    def from_parsed(cls, parsed: JsonDict):
+        return cls(
+            range=range(parsed["range"]["start"], parsed["range"]["end"]),
+            value=_resolve_value(parsed["value"]),
+            entity=parsed["entity"],
+            name=parsed["slotName"],
+        )
 
     @property
     def start(self):
@@ -343,7 +348,7 @@ class SnipsSlot(tuple):
         return f"{self.name}={self.value}"
 
 
-def _resolve_value(value: JsonDict) -> Union[datetime.timedelta, float, str]:
+def _resolve_value(value: JsonDict) -> SlotValue:
     # https://github.com/snipsco/snips-nlu-ontology#grammar-entity
     if value["kind"] == "Duration":
         return _resolve_duration(value)
