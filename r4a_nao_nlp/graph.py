@@ -105,7 +105,8 @@ class Graph(nx.DiGraph):
 
 
 def _data_label(data: Dict[str, List[Token]]) -> str:
-    return "".join(t.text_with_ws for t in data.get("label", [])).strip()
+    tokens = data.get("label") or []
+    return "".join(t.text_with_ws for t in tokens).strip()
 
 
 # vim:ts=4:sw=4:expandtab:fo-=t:tw=88
