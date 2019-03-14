@@ -1,6 +1,7 @@
 # TODO: docstrings
 from __future__ import annotations
 
+import atexit
 import datetime
 import json
 import os
@@ -76,25 +77,29 @@ class Shared:
             logger.debug(
                 "Initiating allennlp SRL server with model from %s", srl_predictor_path
             )
-            import atexit
-            from subprocess import Popen, PIPE, TimeoutExpired
+            from multiprocessing import Process, Queue
 
-            def cleanup(process):
-                if process.poll() is None:
-                    logger.debug("Closing process %s", process.pid)
-                    try:
-                        process.communicate(timeout=5)
-                    except TimeoutExpired:
-                        logger.exception("Killing %s", process.pid)
-                        process.kill()
-
-            self._srl_server = Popen(
-                ["python", "-m", "r4a_nao_nlp.srl_server", srl_predictor_path],
-                stdin=PIPE,
-                stdout=PIPE,
-            )
+            self._srl_qi = Queue()
+            self._srl_qo = Queue()
             self._srl_count = 0
-            atexit.register(cleanup, self._srl_server)
+
+            p = Process(
+                target=_predictor_server,
+                args=(srl_predictor_path, self._srl_qi, self._srl_qo),
+                daemon=True,
+            )
+            p.start()
+
+            @atexit.register
+            def cleanup():
+                logger.debug("Calling cleanup")
+                self._srl_qi.put(None, timeout=0.5)
+                self._srl_qi.close()
+                self._srl_qo.close()
+                p.join(timeout=5)
+                if p.is_alive():
+                    logger.error("Killing SRL server")
+                    p.kill()
 
         if snips_path:
             logger.debug("Loading snips engine from %s", snips_path)
@@ -209,16 +214,12 @@ class Shared:
 
     def srl_put(self, s: str) -> None:
         logger.debug("SRL put: %s", s)
-        self._srl_server.stdin.write((s + "\0\n").encode())
-        self._srl_server.stdin.flush()
         self._srl_count += 1
+        self._srl_qi.put_nowait(s)
 
     def srl_get(self) -> JsonDict:
-        if self._srl_count == 0:
-            raise ValueError("srl_get called without srl_put")
-
         self._srl_count -= 1
-        return json.loads(self._srl_server.stdout.readline().decode())
+        return self._srl_qo.get()
 
     def srl_clear(self) -> None:
         while self._srl_count > 0:
@@ -263,6 +264,31 @@ class Shared:
             f"Failed to POST to nlp server {self._core_nlp_server_url}: "
             f"{r.status_code}{' - ' + r.text if r.text else ''}"
         )
+
+
+def _predictor_server(path, qi, qo):
+    # Using os.fork() (called from multiprocessing) and allowing cleanups to be run like
+    # normal is dangerous because some filesystem-related cleanups might be called
+    # twice. That's why we remove them first, without executing them in this process.
+    atexit._clear()
+
+    from allennlp.predictors.predictor import Predictor
+
+    predictor = Predictor.from_path(path)
+    while True:
+        s = qi.get()
+        if s is None:
+            break
+        qo.put_nowait(predictor.predict(s))
+
+    # We need to manually call atexit callbacks here because the multiprocessing module
+    # doesn't call them:
+    # https://stackoverflow.com/a/34507557/
+    # https://github.com/python/cpython/blob/49fd6dd887df6ea18dbb1a3c0f599239ccd1cb42/Lib/multiprocessing/popen_fork.py#L75
+    # But if we don't call them, allennlp leaves extracted archives in the $TMPDIR:
+    # https://github.com/allenai/allennlp/blob/fefc439035df87e3d2484eb2f53ca921c4c2e2fe/allennlp/models/archival.py#L176-L178
+    logger.debug("atexit should call %d callbacks", atexit._ncallbacks())
+    atexit._run_exitfuncs()
 
 
 @total_ordering
