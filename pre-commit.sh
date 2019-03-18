@@ -27,7 +27,19 @@ function check_fmt() {
     return "$exit_code"
 }
 
-if ! [[ "$VIRTUAL_ENV" ]]; then
+function doc_only() {
+    git diff --cached --name-only | while read file; do
+        if [[ ! $file =~ \.tex$ ]] && [[ ! $file =~ \.md$ ]] && [[ ! $file =~ \.bib$ ]]; then
+            false
+            return
+        fi
+    done
+}
+
+doc_only
+is_doc_only=$?
+
+if [[ ! $VIRTUAL_ENV ]] && [[ $is_doc_only -ne 0 ]]; then
     echo 'No virtual env detected'
     source .venv/bin/activate || exit $?
 fi
@@ -37,6 +49,8 @@ git diff --cached --name-only --diff-filter=d | while read FILE; do
     echo "$FILE"
     check_fmt "$FILE" || exit $?
 done
+
+[[ $is_doc_only -eq 0 ]] && exit 0
 
 tmpdir="$(mktemp -d)/"
 git checkout-index --prefix="$tmpdir" $(git ls-files 'test*.py' | grep -v 'test_full.py')
