@@ -60,3 +60,5 @@ exit_code=$?
 
 rm -rf "$tmpdir"
 exit "$exit_code"
+
+# vim:ts=4:sw=4:expandtab:fo-=t:tw=88
