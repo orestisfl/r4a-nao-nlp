@@ -232,6 +232,7 @@ def doc_enhance_corefs(doc: Doc, corefs: CorefDict) -> None:
             cluster = MockCluster(main_span, mentions)
             for token in chain.from_iterable(cluster):
                 _token_add_cluster(token, cluster)
+            doc._.coref_clusters.append(cluster)
 
             assert all(
                 text == str(mention) for (_, text), mention in zip(references, cluster)
