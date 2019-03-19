@@ -205,6 +205,8 @@ def doc_enhance_corefs(doc: Doc, corefs: CorefDict) -> None:
         Doc.set_extension("coref_clusters", default=[])
     if not Token.has_extension("coref_clusters"):
         Token.set_extension("coref_clusters", default=[])
+    if doc._.coref_clusters is None:
+        doc._.coref_clusters = []
 
     for ((main_start, main_end), main_text), references in corefs.items():
         mentions = [doc.char_span(start, end) for (start, end), _ in references]
