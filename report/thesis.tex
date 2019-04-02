@@ -294,6 +294,9 @@
 % hyperref shortcuts
 \newcommand{\TOCr}{\hyperref[sec:TOC]{\MakeLowercase{\contentsname}}}
 \newcommand{\TOCR}{\hyperref[sec:TOC]{\contentsname}}
+% project names
+\newcommand{\metamodel}{\en{R4A-NAO}}
+\newcommand{\projectname}{\en{r4a-nao-nlp}}
 
 % ---------------------- MAIN DOCUMENT ----------------------
 \begin{document}
@@ -311,6 +314,7 @@
 % TODO: \newevenside?
 \pagenumbering{roman}
 \input{./0.title_etc.tex}
+\clearpage{}
 \pagenumbering{arabic}
 \input{./1.intro.tex}
 \input{./2.background.tex}
