@@ -1,0 +1,340 @@
+% - For printing to paper I can use openright + monochrome:
+% \documentclass[monochrome,final,a4paper,12 pt,twoside,openright]{report}
+% - Draft: overfullrule is not needed with this since page breaks change because of microtype.
+% \documentclass[draft,a4paper,12 pt,twoside]{report}\overfullrule=0cm
+% - Final: to produce PDF and correct overfull boxes.
+\documentclass[final,a4paper,12 pt,twoside]{report}
+
+\title{Title to be discussed} % TODO: Αυτόματη δημιουργία κώδικα ρομποτικής εφαρμογής από λεκτική περιγραφή
+\author{Ορέστης Φλώρος-Μαλιβίτσης}
+% \date{} % TODO
+
+% XXX: Delete on final document
+% \overfullrule=0.3cm % allows to find overfull hboxes much quicker
+
+% \setlength{\parskip}{1.3em}
+\usepackage{fullpage}
+
+% Argument 'table' for '\cellcolor{}' command.
+% Should be high because it might get loaded by another package with different arguments:
+% - http://tex.stackexchange.com/questions/87197/latex-error-option-clash-for-package-xcolor-for-table
+% - http://tex.stackexchange.com/questions/83101/option-clash-for-package-xcolor
+\usepackage[usenames,table]{xcolor}
+% https://tex.stackexchange.com/a/401184
+\usepackage[many]{tcolorbox}
+\usepackage{adjustbox}
+
+% --------------------- MATH ---------------------
+% Math font options:
+% \usepackage{euler}
+\usepackage{libertinust1math}
+% Math packages
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage{mathspec}
+\usepackage{fixmath}
+%\usepackage{siunitx}
+
+% ---------------------- FONTS & LANGUAGE ----------------------
+% Polyglossia warning: due to a bug (https://github.com/reutenauer/polyglossia/issues/110) numbering with greek letters is incorrect.
+% /usr/share/texmf-dist/tex/latex/polyglossia/gloss-greek.ldf must be edited.
+% or \setmainlanguage[numerals=arabic]{greek} should be used instead.
+\usepackage{polyglossia} % \textenglish
+\usepackage{microtype}
+\setmainlanguage{greek}
+\setotherlanguages{english}
+\defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\usepackage[LGR,T1]{fontenc}
+\newcommand{\anoteleia}{\raisebox{0.4ex}{\char"0387\relax}}
+
+\setmainfont[Mapping=tex-text]{GFS Didot}
+\setsansfont[Mapping=tex-text]{DejaVu Sans}
+\setmonofont[Mapping=tex-text]{DejaVu Sans Mono}
+% Other math fonts:
+% \setmathsfont(Latin)[Scale=MatchLowercase]{Linux Libertine O}
+% \setmathsfont(Digits,Greek)[Scale=MatchLowercase]{GFS Neohellenic Math}
+
+\PolyglossiaSetup{greek}{indentfirst=true}
+\PolyglossiaSetup{english}{indentfirst=true}
+
+% ---------------------- BIBLIOGRAPHY ----------------------
+% Add bibliography to toc table
+\usepackage[notlot,nottoc,notlof]{tocbibind}
+
+\usepackage[numbers,sort]{natbib}
+\bibliographystyle{unsrtnat}
+
+% ---------------------- OTHER ----------------------
+% Extended graphics package
+\usepackage{graphicx}
+\graphicspath{{./images/}}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,fit,positioning}
+\usepackage{pgf}
+% \usetikzlibrary{external}\tikzexternalize % Uncomment to extract figures to separate PDFs
+\usepackage{calc} % Used for \svgscale in inkscape
+
+\setcounter{tocdepth}{2}
+
+\usepackage[font=small]{caption}
+% Sub-figures and sub-tables can be typeset using the subcaption or subfig package:
+% \usepackage{subcaption}
+
+\usepackage{paralist} % \compactitem, \compactenum
+
+\usepackage{fancyhdr}
+\setlength{\headheight}{15.2pt}
+\pagestyle{fancy}
+\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\headsep}{15pt}
+\makeatletter\fancyfoot[CO,CE]{\small{\@title}}\makeatother
+\fancyfoot[RO,LE]{\thepage}
+
+\usepackage[avantgarde]{quotchap}
+\usepackage[calcwidth]{titlesec}
+
+\titleformat{\section}[hang]{\scshape}
+{\Large\thesection}{12pt}{\Large}[{\titlerule[0.5pt]}]
+
+\titleformat{\part}[display]{\huge}{
+    \MakeUppercase{\partname} \Huge{\thepart}%
+}{80pt}{}
+
+
+\lhead[\leftmark]{}
+\rhead[]{\rightmark}
+
+\usepackage{xifthen} % \ifthenelse, \isempty
+\usepackage[section]{placeins} % \FloatBarrier
+\usepackage{tabulary} % Use with LCRJ, makes the total table width equal to <length>
+\usepackage[english=american]{csquotes} % \enquote, \foreignquote
+\usepackage{imakeidx}
+\makeindex[options=-c -s thesis.ist,columns=1]{}
+
+% --------------------- CODE ---------------------
+% Minted package for the listings.
+\usepackage[newfloat=true]{minted}
+\setminted{%
+    autogobble=true,%
+    breaklines=true,%
+    frame=single,%
+    framerule=2pt,%
+    linenos=false%
+}
+\newmintinline[python]{python}{}
+
+% Change the caption name for listing / code enviroment.
+\captionsetup[listing]{name=Καταχώρηση κώδικα,skip=0pt,position=below}
+% and list of listings.
+\SetupFloatingEnvironment{listing}{listname=Κατάλογος αλγορίθμων και καταχωρήσεων κώδικα}
+% Environment with custom caption.
+\newenvironment{code}{\centering\captionsetup{type=listing}}{}
+
+% ---------------------- OTHER ----------------------
+
+% http://ftp.cc.uoc.gr/mirrors/CTAN/macros/latex/contrib/hyperref/doc/manual.html
+% https://tex.stackexchange.com/questions/1863/which-packages-should-be-loaded-after-hyperref-instead-of-before
+\usepackage{float}
+\floatplacement{figure}{ht}
+\floatplacement{listing}{ht}
+% TODO: pdfsubject, pdfkeywords
+\usepackage[xetex,colorlinks=true,pdfborder={0 0 0},urlcolor=cyan,linkcolor=blue,citecolor=red,breaklinks,backref=page,pdfusetitle,unicode]{hyperref}
+\renewcommand*{\backref}[1]{}
+\renewcommand*{\backrefalt}[4]{{\footnotesize [%
+                \ifcase #1 Δεν υπάρχει αναφορά%
+                \or Αναφορά στη σελίδα~#2%
+                \else Αναφορές στις σελίδες~#2%
+                \fi%
+            ]}}
+
+\usepackage[plain]{fancyref}
+\newcommand*{\fancyrefsubseclabelprefix}{subsec}
+\newcommand*{\fancyreflstlabelprefix}{lst}
+\fancyrefaddcaptions{greek}{
+    \renewcommand*{\frefseename}{βλέπε}
+    \renewcommand*{\Frefseename}{Βλέπε}
+    \renewcommand*{\frefeqname}{εξίσωση}
+    \renewcommand*{\Frefeqname}{Εξίσωση}
+    \renewcommand*{\frefsecname}{ενότητα}
+    \renewcommand*{\Frefsecname}{Ενότητα}
+    \providecommand*{\frefsubsecname}{υποενότητα}
+    \providecommand*{\Frefsubsecname}{Υποενότητα}
+    \providecommand*{\freflstname}{καταχώρηση}
+    \providecommand*{\Freflstname}{Καταχώρηση}
+}
+\frefformat{plain}{\fancyrefsubseclabelprefix}{\frefsubsecname\fancyrefdefaultspacing#1}
+\Frefformat{plain}{\fancyrefsubseclabelprefix}{\Frefsubsecname\fancyrefdefaultspacing#1}
+\frefformat{plain}{\fancyreflstlabelprefix}{\freflstname\fancyrefdefaultspacing#1}
+\Frefformat{plain}{\fancyreflstlabelprefix}{\Freflstname\fancyrefdefaultspacing#1}
+
+% ---------------------- CUSTOM COMMANDS ----------------------
+% Captions with list entries
+\newcommand{\ccaption}[2]{\caption[#1]{#1. Από~\protect\cite{#2}.}}
+\newcommand{\lcaption}[2]{\caption[#1]{#1. #2}}
+% Write in English
+\newcommand{\en}[1]{\textenglish{#1}}
+% Like \enquote
+\newcommand{\engquote}[1]{\en{\foreignquote{english}{#1}}}
+% How to display new terms
+\let\newtermformat\MakeLowercase% Convert text to lowercase
+\newcommand{\newtermprint}[2][]{\emph{\newtermformat{#2}}\ifthenelse{\isempty{#1}}{}{ (\en{#1})}}
+\newcommand{\newtermprintc}[2][]{\emph{#2}\ifthenelse{\isempty{#1}}{}{ (\en{#1})}}
+% Define terms with their English translation and place them on the index
+\makeatletter
+\newcommand{\newterm@generic}[4][]{%
+\begingroup%
+\def\rr##1##2{##1}% Text inside \rr{} normal
+\def\dd##1{##1}% Text inside \dd{} normal
+\newtermprint[#3]{#2}%
+\endgroup%
+\begingroup%
+\def\rr##1##2{##2}% Text inside \rr{} normal
+\let\dd\@gobble% Text inside \dd{} deleted
+% Create the index argument
+\ifthenelse{\isempty{#3}}{%
+    \def\indexArg{#2}%
+}{%
+    \def\indexArg{#2 - #3}%
+}%
+\ifthenelse{\isempty{#1}}{}{%
+    \edef\indexArg{#1!\indexArg}%
+}%
+\ifthenelse{\isempty{#4}}{%
+\index{\indexArg}%
+}{%
+\index{\indexArg|see {#4}}%
+}%
+\endgroup%
+}
+\newcommand{\newterm}[3][]{\newterm@generic[#1]{#2}{#3}{}}
+\newcommand{\newtermc}[3][]{\begingroup\let\newtermformat\@firstofone\newterm@generic[#1]{#2}{#3}{}\endgroup}
+\newcommand{\newtermsee}[4][]{\newterm@generic[#1]{#2}{#3}{#4}}
+\newcommand{\newtermcsee}[4][]{\begingroup\let\newtermformat\@firstofone\newterm@generic[#1]{#2}{#3}{#4}\endgroup}
+% Figure shortcut
+\newlength{\ig@indent}
+\setlength{\ig@indent}{\parindent}
+\define@key{ig}{pos}{\def\ig@pos{#1}} % Position of figure like htbpH
+\define@key{ig}{inc}{\def\ig@inc{#1}} % \includegraphics options like width=
+\define@key{ig}{type}{\def\ig@type{#1}} % \includegraphics options like width=
+\define@key{ig}{svgwidth}{\ifthenelse{\isempty{#1}}{}{\def\svgwidth{#1}}} %
+\define@key{ig}{svgscale}{\ifthenelse{\isempty{#1}}{}{\def\svgscale{#1}}} %
+\newcommand{\ig@maxfigure}[3]{%
+    \bgroup%
+    \sbox0{\begin{minipage}{\textwidth}#3\end{minipage}}%
+    \ifdim\ht0>#1\relax\errmessage{\string\maxfigure: caption too big}%
+    \else\centering\maxsizebox{\textwidth}{\dimexpr #1 - \ht0 - \abovecaptionskip}{#2}\fi%
+    \par\box0%
+    \egroup%
+}
+% https://tex.stackexchange.com/a/20892/
+\newcommand{\ig@escapeunderscore}{\begingroup\@makeother\_\@escapeunderscore}
+\newcommand*{\@escapeunderscore}[1]{#1\endgroup}
+\setkeys{ig}{inc=,pos=ht,type=pgf,svgwidth=,svgscale=}% The defaults
+\newcommand{\ig}[3][]{% #1 = the keys, #2 = file name == label #3 = \caption-like command
+    \begingroup% Otherwise \setkeys will affect subsequent calls
+    \setkeys{ig}{#1}% Set new keys
+    \expandafter\figure\expandafter[\ig@pos]% https://tex.stackexchange.com/a/11340/
+    \centering% Just sets \par parameters, can be used everywhere
+    \captionsetup{singlelinecheck=false}%
+    % \captionsetup{singlelinecheck=false,format=hang,hangindent=-\ig@indent}% TODO: make sure this looks nice for small captions as well
+    \ifthenelse{\equal{\ig@type}{pgf} \OR \equal{\ig@type}{tikz}}{%
+        \input{images/#2.\ig@type}% Not affected by \graphicspath
+        #3\label{fig:#2}
+    }{%
+        \ifthenelse{\equal{\ig@type}{inkscape}}{%
+            \ig@maxfigure{%
+                0.95\textheight - \topskip - \baselineskip}{%
+                \ig@escapeunderscore{\input{images/#2.pdf_tex}}}{%
+                #3\label{fig:#2}}%
+        }{%
+            \expandafter\includegraphics\expandafter[\ig@inc]{#2.\ig@type}% Affected by \graphicspath
+            #3\label{fig:#2}
+        }%
+    }%
+    \endfigure%
+    \endgroup%
+}
+\makeatother
+% My math stuff
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\renewcommand{\vec}[1]{\mathbold{#1}}
+\newcommand{\mat}[1]{\mathbold{#1}}
+\newcommand{\vx}{\vec{x}}
+\newcommand{\vX}{\mat{X}}
+\newcommand{\vy}{\vec{y}}
+\newcommand{\vY}{\mat{Y}}
+\newcommand{\vw}{\vec{w}}
+\newcommand{\vth}{\vec{\theta}}
+\newcommand{\vTh}{\mat{\Theta}}
+\newcommand{\hth}{h_{\vth}}
+\newcommand{\hTh}{h_{\vTh}}
+\newenvironment{conditions}{% "Όπου:" …
+\\\vspace{\abovedisplayskip}\noindent\tabulary{\linewidth}{>{$}L<{$} @{${}\hspace{1em}{}$} L}
+}{%
+\endtabulary\par\vspace{\belowdisplayskip}%
+}
+% For intent formatting
+\newcommand{\intent}[1]{\mintinline{text}{#1}}
+\newcommand{\entity}[1]{\mintinline{text}{#1}}
+\newcommand{\noslot}{\ensuremath{\varnothing}}
+% Formatting shortcuts
+\newcommand{\bfttt}[1]{\textbf{\texttt{#1}}}
+\newcommand{\enttt}[1]{\en{\texttt{#1}}}
+\newcommand{\enbfttt}[1]{\en{\bfttt{#1}}}
+% Cite + format a library
+\newcommand{\lib}[1]{\en{#1}}
+\newcommand{\libcite}[2][]{%
+    \lowercase{\def\tmp{#2}}%
+    \lib{#2}\index{#1#2}~\cite{\tmp}%
+}
+% hyperref shortcuts
+\newcommand{\TOCr}{\hyperref[sec:TOC]{\MakeLowercase{\contentsname}}}
+\newcommand{\TOCR}{\hyperref[sec:TOC]{\contentsname}}
+
+% ---------------------- MAIN DOCUMENT ----------------------
+\begin{document}
+% Hyphenation rules after document start
+% https://tex.stackexchange.com/questions/229915/polyglossia-ignores-my-custom-hyphenation
+\begin{english}\hyphenation{neu-ral-co-ref Co-ref-An-no-ta-tor Al-len-NLP Core-NLP Rust-ling mat-plot-lib}\end{english}
+
+% https://tex.stackexchange.com/questions/4705/
+% https://english.stackexchange.com/questions/2544/
+% Causes LaTeX to treat spacing between sentences in the same way as spacing between words in the middle of a sentence.
+\frenchspacing
+% Causes spacing between sentences to stretch or shrink more (see \spacefactor); this is the default.
+% \nonfrenchspacing
+
+% TODO: \newevenside?
+\pagenumbering{roman}
+\input{./0.title_etc.tex}
+\pagenumbering{arabic}
+
+% https://www.bastibl.net/publication-quality-plots/
+% TODO: delete & delete file
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{placeholder}
+    \caption{This is a placeholder to measure the width of a plot. Its with is set to \texttt{columnwidth}.}
+\end{figure}
+
+\input{./1.intro.tex}
+\input{./2.background.tex}
+\input{./3.state_of_the_art.tex}
+\input{./4.methodology.tex}
+\input{./5.results.tex}
+\input{./6.conclusions_future.tex}
+
+\clearpage{}
+\printindex{}
+
+\bibliography{%
+    bibliography/general%
+}
+
+\end{document}
+
+% vim:ts=4:sw=4:expandtab:fo-=tc:tw=120
