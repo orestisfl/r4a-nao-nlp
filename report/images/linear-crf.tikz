@@ -1,0 +1,32 @@
+\begin{tikzpicture}[auto]
+    \begin{scope}[node distance=0.5cm, element/.style={circle,thick,draw,minimum size=1.3cm}]
+        % y
+        \node[element] (y1) {$y_1$};
+        \node[element,right=of y1] (y2) {$y_2$};
+        \node[element,right=of y2] (y3) {$y_3$};
+        \node[right=of y3] (ydots) {\ldots};
+        \node[element,right=of ydots] (yTm) {$y_{T-1}$};
+        \node[element,right=of yTm] (yT) {$y_T$};
+        % x
+        \node[element,below=1 cm of y1] (x1) {$\vx_1$};
+        \node[element,right=of x1] (x2) {$\vx_2$};
+        \node[element,right=of x2] (x3) {$\vx_3$};
+        \node[right=of x3] (xdots) {\ldots};
+        \node[element,right=of xdots] (xTm) {$\vx_{T-1}$};
+        \node[element,right=of xTm] (xT) {$\vx_T$};
+    \end{scope}
+    \node[draw,thick,fit=(x1) (x2) (x3) (xTm) (xT)] (box) {};
+    \begin{scope}[>={Stealth[black]},
+        every edge/.style={draw=red,very thick}]
+        \path[<-] (y1) edge (box);
+        \path[->] (y1) edge (y2);
+        \path[<-] (y2) edge (box);
+        \path[->] (y2) edge (y3);
+        \path[<-] (y3) edge (box);
+        \path[->] (y3) edge (ydots);
+        \path[<-] (yTm) edge (ydots);
+        \path[<-] (yTm) edge (box);
+        \path[->] (yTm) edge (yT);
+        \path[<-] (yT) edge (box);
+    \end{scope}
+\end{tikzpicture}
