@@ -1,6 +1,7 @@
 """Miscellaneous utilities."""
 import argparse
 import logging
+import sys
 from functools import wraps
 from itertools import chain, combinations
 from typing import Callable, Collection, Iterable, Iterator, Optional
@@ -134,6 +135,13 @@ class PowerSet:
         return iter(
             chain.from_iterable(combinations(self._collection, r) for r in r_range)
         )
+
+
+def before_37() -> bool:
+    """Check if python version is before 3.7"""
+    major, minor, _, _, _ = sys.version_info
+
+    return (major, minor) < (3, 7)
 
 
 # vim:ts=4:sw=4:expandtab:fo-=t:tw=88

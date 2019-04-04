@@ -23,6 +23,11 @@ if TYPE_CHECKING:
         SnipsNLUEngine,
         Token,
     )
+    from r4a_nao_nlp.utils import before_37
+
+    if before_37():
+        SnipsResult = "SnipsResult"
+        SnipsSlot = "SnipsSlot"
 
     SlotValue = Union[datetime.timedelta, float, str]
 

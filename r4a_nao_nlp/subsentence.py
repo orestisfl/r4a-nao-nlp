@@ -12,6 +12,11 @@ from r4a_nao_nlp.engines import SnipsResult, shared
 
 if TYPE_CHECKING:
     from r4a_nao_nlp.typing import JsonDict, Span, Token, Graph
+    from r4a_nao_nlp.utils import before_37
+
+    if before_37():
+        SubSentence = "SubSentence"
+        Combination = "Combination"
 
 logger = utils.create_logger(__name__)
 
