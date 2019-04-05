@@ -163,6 +163,38 @@ def save_engine(engine: SnipsNLUEngine, path: str) -> None:
             archive.add(path, arcname="engine")
 
 
+def dataset_to_rasa(dataset: JsonDict) -> JsonDict:
+    """Convert dataset to RASA format, ignoring entities
+
+    See: "https://rasa.com/docs/nlu/dataformat/"
+    """
+    return {
+        "rasa_nlu_data": {
+            "common_examples": [
+                {"text": text, "intent": intent, "entities": []}
+                for intent, text in _dataset_intent_iterator(dataset)
+            ]
+        }
+    }
+
+
+def dataset_to_csv_dict(dataset: JsonDict) -> List[JsonDict]:
+    """Convert dataset to a dict that can be used with csv.DictWriter
+
+    See: "https://docs.python.org/3/library/csv.html#csv.DictWriter"
+    """
+    return [
+        {"intent": intent, "text": text}
+        for intent, text in _dataset_intent_iterator(dataset)
+    ]
+
+
+def _dataset_intent_iterator(dataset: JsonDict) -> Iterator[str, str]:
+    for intent_name, intent_data in dataset["intents"].items():
+        for utterance in intent_data["utterances"]:
+            yield intent_name, "".join(x["text"] for x in utterance["data"])
+
+
 if __name__ == "__main__":
     from r4a_nao_nlp import __main__
 
