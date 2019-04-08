@@ -36,12 +36,31 @@ function start_corenlp() {
     cd ..
 }
 
+function download_spacy() {
+    python -m spacy download en_core_web_md
+    python -m spacy download en_core_web_sm
+    python -m spacy download en
+}
+
+function install_apex() {
+    pip show -qqq apex && return
+
+    rm -rf apex
+    git clone --depth 1 'https://github.com/nvidia/apex'
+    cd apex
+    pip install -v --no-cache-dir --global-option='--cpp_ext' --global-option='--cuda_ext' .
+}
+
 python -c 'import sys; sys.exit(int(sys.version_info.major < 3))' || exit 1
 python -c 'import sys; v = sys.version_info; sys.exit(int(v.major == 3 and v.minor < 7))' || to_36
 
 pip install -U '.[all]'
 python -m snips_nlu download en &
-(python -m spacy download en_core_web_md && python -m spacy download en_core_web_sm && python -m spacy download en) &
+download_spacy &
+
+# Optional, fixes warning when loading pytorch_pretrained_bert:
+# > Better speed can be achieved with apex installed from https://www.github.com/nvidia/apex.
+install_apex &
 
 start_corenlp
 
