@@ -16,16 +16,6 @@ function to_36() {
     sed -i '/^from typing/! s/^from.* import \(.*\)$/\1 = "\1"/' r4a_nao_nlp/typing.py
 }
 
-function setup_coref() {
-    pip freeze | grep 'en-coref-md==3.0.0' && return
-
-    if [[ ! -f en_coref_md-3.0.0.tar.gz ]]; then
-        wget 'https://github.com/huggingface/neuralcoref-models/releases/download/en_coref_md-3.0.0/en_coref_md-3.0.0.tar.gz'
-    fi
-
-    pip install en_coref_md-3.0.0.tar.gz
-}
-
 function start_corenlp() {
     if [[ ! -d stanford-corenlp-full-2018-10-05 ]]; then
         apt-get install -y openjdk-8-jdk-headless unzip &
@@ -49,10 +39,9 @@ function start_corenlp() {
 python -c 'import sys; sys.exit(int(sys.version_info.major < 3))' || exit 1
 python -c 'import sys; v = sys.version_info; sys.exit(int(v.major == 3 and v.minor < 7))' || to_36
 
-pip install '.[all]'
-setup_coref &
+pip install -U '.[all]'
 python -m snips_nlu download en &
-(python -m spacy download en_core_web_sm && python -m spacy download en) &
+(python -m spacy download en_core_web_md && python -m spacy download en_core_web_sm && python -m spacy download en) &
 
 start_corenlp
 

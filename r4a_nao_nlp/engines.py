@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import atexit
 import datetime
+import importlib
 import json
 import os
 import tarfile
@@ -56,7 +57,8 @@ class Shared:
         srl_predictor_path: Optional[
             str
         ] = "https://s3-us-west-2.amazonaws.com/allennlp/models/srl-model-2018.05.25.tar.gz",
-        spacy_lang: Optional[str] = "en_coref_md",
+        spacy_lang: Optional[str] = "en_core_web_md",
+        neuralcoref: bool = True,
         core_nlp_server_url: Optional[str] = "http://localhost:9000",
     ) -> None:
         logger.debug("Initializing shared resources")
@@ -131,10 +133,24 @@ class Shared:
                 self._transformations = json.load(f)
 
         if spacy_lang:
-            import spacy
-
             logger.debug("Loading spacy lang %s", spacy_lang)
-            self._spacy = spacy.load(spacy_lang)
+            try:
+                module = importlib.import_module(spacy_lang)
+            except ModuleNotFoundError:
+                from spacy.cli.download import download
+
+                download(spacy_lang)
+                module = importlib.import_module(spacy_lang)
+
+            self._spacy = module.load()
+
+        if neuralcoref:
+            if self._spacy is None:
+                raise ValueError("neuralcoref is set but no spacy model is loaded")
+
+            import neuralcoref
+
+            neuralcoref.add_to_pipe(self._spacy)
 
         if self._spacy and self._core_nlp_server_url:
             from spacy.tokens import Token
