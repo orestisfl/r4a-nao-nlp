@@ -280,6 +280,14 @@
 % For intent formatting
 \newcommand{\intent}[1]{\mintinline{text}{#1}}
 \newcommand{\entity}[1]{\mintinline{text}{#1}}
+\newcommand{\intentr}[1]{%
+    \begingroup%
+    \def\tmp{#1}%
+    \StrDel{\tmp}{ }[\tmp]%
+    \hypersetup{linkcolor=black}%
+    \hyperref[intent:\tmp]{\expandafter\intent\expandafter{\tmp}}%
+    \endgroup%
+}
 \newcommand{\noslot}{\ensuremath{\varnothing}}
 % Formatting shortcuts
 \newcommand{\bfttt}[1]{\textbf{\texttt{#1}}}
@@ -296,9 +304,13 @@
 \newcommand{\TOCR}{\hyperref[sec:TOC]{\contentsname}}
 \newcommand{\SRLR}{\hyperref[subsec:srl]{\en{SRL}}}
 \newcommand{\CRFR}{\hyperref[sec:crf]{\en{CRF}}}
+\newcommand{\NLU}{\hyperref[sec:nlu]{\en{NLU}}}
 % project names
 \newcommand{\metamodel}{\en{R4A-NAO}}
 \newcommand{\projectname}{\en{r4a-nao-nlp}}
+% SRL arguments
+\newcommand{\ARGs}{\enttt{ARG0}\ldots{}\enttt{ARG5}}
+\newcommand{\ARGM}{\enttt{ARGM}}
 
 % ---------------------- MAIN DOCUMENT ----------------------
 \begin{document}
