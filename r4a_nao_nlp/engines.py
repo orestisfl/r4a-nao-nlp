@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import atexit
+import copy
 import datetime
 import importlib
 import json
@@ -180,7 +181,7 @@ class Shared:
             return self.parse(s)
 
         # Copy since we modify what is returned by the lru_cache.
-        result = self._parse(s).copy()
+        result = copy.deepcopy(self._parse(s))
         # We don't bother to modify "input" so it will be invalid afterwards, make sure
         # we don't use it later.
         del result["input"]
