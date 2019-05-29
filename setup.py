@@ -18,7 +18,12 @@ setup(
     name="r4a-nao nlp",
     version="0.0.1",
     packages=find_packages(),
-    install_requires=["spacy>=2.1.0", "allennlp>=0.7.2", "snips-nlu>=0.19.1", "networkx"],
+    install_requires=[
+        "spacy>=2.1.0,<2.1.4",  # https://github.com/huggingface/neuralcoref/issues/164
+        "allennlp>=0.7.2",
+        "snips-nlu>=0.19.1",
+        "networkx",
+    ],
     extras_require=extras_add_all(
         {
             "plots": ["matplotlib", "adjustText"],

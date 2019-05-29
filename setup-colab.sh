@@ -54,6 +54,8 @@ function install_apex() {
 python -c 'import sys; sys.exit(int(sys.version_info.major < 3))' || exit 1
 python -c 'import sys; v = sys.version_info; sys.exit(int(v.major == 3 and v.minor < 7))' || to_36
 
+# https://github.com/huggingface/neuralcoref#spacystringsstringstore-size-changed-error
+pip install neuralcoref --no-binary neuralcoref
 pip install -U '.[all]'
 python -m snips_nlu download en &
 download_spacy &
