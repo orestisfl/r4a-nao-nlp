@@ -90,7 +90,7 @@ def process_document(s: str) -> Graph:
 
             if not simple:
                 logger.warn("Could not parse intent from sentence: %s", sent)
-                g.add_edge(g.prev_end, str(sent))
+                g.add_edge(g.prev_end, sent)
                 continue
 
             node = subsentence.SubSentence(["B-V"] + (len(sent) - 1) * ["I-V"], sent)
