@@ -80,6 +80,8 @@ class SubSentence:
             return
 
         span = self.sent[start : end + 1]
+        if tag.startswith("R-"):
+            tag = tag[2:]
         if tag.startswith("V"):
             assert self.verb is None
             self.verb = span
