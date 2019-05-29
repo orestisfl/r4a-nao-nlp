@@ -190,7 +190,7 @@ class Shared:
         for slot in result["slots"]:
             raw = slot.get("rawValue", "")
             slot["range"]["start"] += offset
-            if QUOTE_STRING in raw:
+            while QUOTE_STRING in raw:
                 assert slot["value"]["kind"] == "Custom"
 
                 replacement = quotes.pop(0)
@@ -200,9 +200,10 @@ class Shared:
                 slot["rawValue"] = slot["rawValue"].replace(
                     QUOTE_STRING, replacement, 1
                 )
-                assert QUOTE_STRING not in slot["value"]
-                assert QUOTE_STRING not in slot["rawValue"]
                 offset += len(replacement) - len(raw)
+                raw = slot["rawValue"]
+            assert QUOTE_STRING not in slot["value"]
+            assert QUOTE_STRING not in slot.get("rawValue", "")
             slot["range"]["end"] += offset
 
         snips_result = SnipsResult.from_parsed(result)
