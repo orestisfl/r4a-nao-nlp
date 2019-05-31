@@ -1,8 +1,17 @@
 ---
+automatically_extensible: true
+name: Lexicon
+type: entity
+values:
+  - TEXT
+  - QUOTE
+---
 name: Listen
 slots:
   - entity: snips/duration
     name: duration
   - entity: DetectForever
     name: bDetectForever
+  - entity: Lexicon
+    name: lexicon
 type: intent
