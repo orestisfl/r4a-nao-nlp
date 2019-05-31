@@ -82,5 +82,20 @@
     "slots": {
       "direction:HeadDirection": "NEUTRAL"
     }
+  },
+  "BodyStanceStand": {
+    "name": "BodyStance",
+    "slots": {
+      "stance:Stance": "STAND"
+    }
+  },
+  "BodyStanceSit": {
+    "name": "BodyStance",
+    "slots": {
+      "stance:Stance": "SIT"
+    }
+  },
+  "BodyStanceCrouch": {
+    "name": "BodyStance"
   }
 }

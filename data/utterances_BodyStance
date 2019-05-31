@@ -1,5 +1,0 @@
-[stance]({Stand,Sit,Crouch,Standing,Sitting,Crouching})
-{Crouch,Crouching,Lay,Lying} on your [stance](back)
-[stance]({Stand,Standing}) {up,upright}.
-[stance]({Sit,Sitting}) {down,on the floor}.
-[stance]({Crouch,Crouching}) on the floor.

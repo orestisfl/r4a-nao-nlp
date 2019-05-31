@@ -3,13 +3,10 @@ automatically_extensible: false
 name: Stance
 type: entity
 values:
-  - [STAND, standing]
-  - [SIT, sitting]
-  - [CROUCH, crouching]
   - [ONBACK, back]
 
 ---
-name: BodyStance
+name: BodyStanceCrouch
 slots:
   - entity: Stance
     name: stance
