@@ -172,13 +172,16 @@ class Shared:
 
     def parse_tokens(self, tokens: Sequence[Token]) -> SnipsResult:
         s = " ".join(str(t) for t in tokens)  # TODO: better whitespace
-        quotes = (
-            [t._.quote for t in tokens if t._.quote is not None]
-            if self._core_nlp_server_url
-            else None
-        )
-        if not quotes:
+        if not self._core_nlp_server_url or all(t._.quote is None for t in tokens):
             return self.parse(s)
+
+        idx_to_token = {}
+        idx = 0
+        for token in tokens:
+            start = idx
+            idx += len(token)
+            idx_to_token[(start, idx)] = token
+            idx += 1
 
         # Copy since we modify what is returned by the lru_cache.
         result = copy.deepcopy(self._parse(s))
@@ -188,22 +191,28 @@ class Shared:
 
         offset = 0
         for slot in result["slots"]:
-            raw = slot.get("rawValue", "")
-            slot["range"]["start"] += offset
-            while QUOTE_STRING in raw:
-                assert slot["value"]["kind"] == "Custom"
+            if slot["range"]["start"] < 0:
+                continue
 
-                replacement = quotes.pop(0)
-                slot["value"]["value"] = slot["value"]["value"].replace(
-                    QUOTE_STRING, replacement, 1
-                )
-                slot["rawValue"] = slot["rawValue"].replace(
-                    QUOTE_STRING, replacement, 1
-                )
-                offset += len(replacement) - len(raw)
-                raw = slot["rawValue"]
-            assert QUOTE_STRING not in slot["value"]
-            assert QUOTE_STRING not in slot.get("rawValue", "")
+            raw = slot.get("rawValue", "")
+            idx = slot["range"]["start"]
+
+            slot["range"]["start"] += offset
+
+            raw_tokens = []
+            for raw_token in raw.split(" "):
+                start = idx
+                idx += len(raw_token)
+                replacement = idx_to_token[(start, idx)]._.quote
+                if replacement:
+                    assert raw_token == QUOTE_STRING
+                    raw_tokens.append(replacement)
+                    offset += len(replacement) - len(raw_token)
+                else:
+                    raw_tokens.append(raw_token)
+                idx += 1
+            slot["rawValue"] = slot["value"]["value"] = " ".join(raw_tokens)
+
             slot["range"]["end"] += offset
 
         snips_result = SnipsResult.from_parsed(result)
