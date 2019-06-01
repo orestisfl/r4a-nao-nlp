@@ -5,8 +5,4 @@ type: entity
 values:
   - MOTION_NAME
   - file.wmv
-  - '"name with quotes"'
-  - birds chirping
-  - sound 1582
-  - output.mp3
-  - dog barking.mp3
+  - QUOTE
