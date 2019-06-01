@@ -1,0 +1,7 @@
+strict digraph  {
+Start [sent_idx=0];
+"ReportWeather()" [idx=0, idx_main=0, sent_idx=0, shape=box];
+"End-0" [sent_idx=0];
+Start -> "ReportWeather()"  [label="If you see me leaving the house"];
+"ReportWeather()" -> "End-0"  [label=""];
+}

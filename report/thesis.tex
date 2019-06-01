@@ -71,7 +71,7 @@
 % ---------------------- OTHER ----------------------
 % Extended graphics package
 \usepackage{graphicx}
-\graphicspath{{./images/}}
+\graphicspath{{./images/}{./images/graphs/}}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,fit,positioning}
 \usepackage{pgf}
@@ -248,7 +248,7 @@
         \ifthenelse{\equal{\ig@type}{inkscape}}{%
             \ig@maxfigure{%
                 0.95\textheight - \topskip - \baselineskip}{%
-                \ig@escapeunderscore{\input{images/#2.pdf_tex}}}{%
+                \ig@escapeunderscore{\input{images/graphs/#2.pdf_tex}}}{%
                 #3\label{fig:#2}}%
         }{%
             \expandafter\includegraphics\expandafter[\ig@inc]{#2.\ig@type}% Affected by \graphicspath

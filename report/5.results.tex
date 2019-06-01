@@ -1,3 +1,246 @@
-\chapter{Πειράματα \& Αποτελέσματα}\label{chap:results}
+\chapter{Πειράματα \& Αποτελέσματα}\label{chap:results}% TODO: write blabla to fit graphs
+\section{Πιθανά προβλήματα}\label{sec:problems}
+\subsection{Λόγω \lib{spaCy}}\label{subsec:problems-spacy}
+Καθώς τα μοντέλα της αγγλικής γλώσσας που παρέχονται από τη βιβλιοθήκη \lib{spaCy} χρησιμοποιούνται και από την υλοποίηση SRL της βιβλιοθήκης \lib{AllenNLP},
+σφάλματα στην πρώτη μπορούν να οδηγήσουν σε λάθος αποτελέσματα στη δεύτερη.
+Για παράδειγμα, στις προτάσεις της καταχώρησης \ref{lst:problem-POS} υπάρχουν λάθη στην \newterm{Επισημείωση Μερών του Λόγου}{Part-of-Speech Tagging}
+και η εσφαλμένη ανάθεση σημασιολογικών ρόλων φαίνεται στην \fref{lst:problem-POS-SRL}.
+
+Μια λύση για αυτό το πρόβλημα αποτελεί η επανεκπαίδευση των μοντέλων της \lib{spaCy} πάνω σε νέα δεδομένα\footnote{\url{https://explosion.ai/blog/pseudo-rehearsal-catastrophic-forgetting}}.
+
+\begin{listing}[p] % Using p here since they fit perfectly in a page
+    \begin{minted}{python}
+>>> import spacy
+>>> nlp = spacy.load("en_core_web_sm")  # Μοντέλο που χρησιμοποιεί ως προεπιλογή η AllenNLP
+>>> # Σημειώνεται ότι η πρόσφατη νεώτερη έκδοση δεν εμφανίζει όλα τα προβλήματα που αναφέρονται εδώ
+>>> nlp._meta["version"]
+'2.0.0'
+>>> doc = nlp("Replay the motion named XXX")
+>>> doc[0].pos_  # Σωστό
+'VERB'
+>>> doc = nlp("Replay motion named XXX")  # Χωρίς το "the"
+>>> doc[0].pos_  # Θα έπρεπε και πάλι να είναι "VERB"
+'NOUN'
+>>> # Προβλήματα με κατευθύνσεις "left" και "right"
+>>> doc = nlp("Turn right")
+>>> doc[-1].pos_  # Σωστό
+'ADV'
+>>> doc = nlp("Turn right and then left")
+>>> doc[-1].pos_  # Θα έπρεπε και πάλι να είναι "ADV"
+'VERB'
+    \end{minted}
+    \caption{Σφάλματα στην αντιστοίχηση ετικετών μερών του λόγου}\label{lst:problem-POS}
+\end{listing}
+\begin{listing}[p]
+    \begin{minted}{python}
+>>> from pprint import pprint
+>>> from allennlp.predictors.predictor import Predictor
+>>> predictor = Predictor.from_path(
+... "https://s3-us-west-2.amazonaws.com/allennlp/"
+... "models/srl-model-2018.05.25.tar.gz"
+... )
+>>> predictor = Predictor.from_path(
+...     "https://s3-us-west-2.amazonaws.com/"
+...     "allennlp/models/srl-model-2018.05.25.tar.gz"
+... )
+>>> [verb["description"] for verb in predictor.predict("Turn right")["verbs"]]
+['[V: Turn] [ARGM-DIR: right]']
+>>> [verb["description"] for verb in predictor.predict("Turn right and then left")["verbs"]]
+['[V: Turn] [ARGM-DIR: right] and then left',
+ 'Turn right and [ARGM-TMP: then] [V: left]']
+    \end{minted}
+    \caption{Πως επηρεάζεται η υλοποίηση SRL από τα σφάλματα στην αντιστοίχηση ετικετών μερών του λόγου}\label{lst:problem-POS-SRL}
+\end{listing}
+
+\subsection{Λόγω ανάθεσης σημασιολογικών ρόλων}
+Ένα παράδειγμα προβλήματος που μπορεί να προκύψει από την ανάθεση σημασιολογικών ρόλων είχε παρουσιαστεί στη \fref{lst:srl}.
+
+\subsection{Λόγω επισήμανσης συναναφορών}
+Όπως αναφέρθηκε, το πρόβλημα της επισήμανσης συναναφορών (\fref{subsec:coref}) θεωρείται ακόμα ανοιχτό στον χώρο της κατανόησης φυσικής γλώσσας.
+Για αυτό, συναντήθηκαν διάφορες προτάσεις στις οποίες κανένα από τα μοντέλα δεν κατάφερε να βρει επιτυχώς όλες τις συναναφορές που υπήρχαν.
+Σε τέτοιες προτάσεις, η μηχανή της snips μπορεί να αποτύχει να βρει όλες τις οντότητες ή ακόμα και τη σωστή πρόθεση του χρήστη.
+
+Επίσης προβλήματα μπορούν να δημιουργηθούν όταν γίνει λάθος ομαδοποίηση των συναναφορών και μια δευτερεύουσα αναφορά αντικατασταθεί με μια πρωτεύουσα αναφορά που ανήκει σε διαφορετική οντότητα.
+
+\subsection{Λόγω NLU}
+Προβλήματα μπορούν να προκύψουν όταν το εκπαιδευμένο μοντέλο \NLU{} δεν μπορεί να βρει την πρόθεση του χρήστη στην τελική πρόταση μετά τις υπόλοιπες μετατροπές.
+Συνήθως, απαιτείται η ενίσχυση της βάσης δεδομένων με περισσότερα παραδείγματα.
+
+\section{Αποτελέσματα σε σενάρια χρήσης}
+Η δοκιμή του συστήματος γίνεται με διάφορα σενάρια χρήσης.
+Η έξοδος του συστήματος μορφοποιείται σε γράφο με τη βοήθεια του \libcite{graphviz} και παρουσιάζεται στα σχήματα αυτής της ενότητας.
+
+\subsection{Δοκιμαστικά σενάρια χρήσης}
+Σε αυτή την υποενότητα παρατίθενται τα σενάρια που συγγράφηκαν κατά τη διάρκεια της υλοποίησης της διπλωματικής.
+Αποτελούν παραδείγματα για τα οποία υπάρχει η προσδοκία καλής απόδοσης.
+Λαμβάνουν υπόψη τους περιορισμούς του συστήματος και χρησιμοποιούνται για να επιδείξουν τις δυνατότητές του συνδυάζοντας αρκετές από τις έννοιες που έχουν αναφερθεί προηγουμένως.
+
+\begin{figure}
+    \makeatletter%
+    \centering
+    \def\svgscale{0.85}%
+    \ig@escapeunderscore{\input{images/graphs/with-modifier.pdf_tex}}
+    \lcaption{Παράδειγμα από δοκιμαστικό σενάριο χρήσης}{%
+        Αρχικό κείμενο: \engquote{Recognize speech without moving}.
+
+        Σε αυτή την πρόταση το σύστημα αναγνωρίζει την πρόθεση \intent{BodyMotion} χωρίς ορίσματα.
+        Η ακινησία (\engquote{without moving}) δεν αποτελεί επιλογή του \metamodel{} σε αυτή την ενέργεια καθώς είναι η υπόρρητη προεπιλογή.
+        Έτσι, ένα σύστημα που αξιοποιεί την έξοδο του \projectname{} πρέπει να αφαιρέσει τον πλεονασμό.
+    }%
+    \def\svgscale{0.85}
+    \ig@escapeunderscore{\input{images/graphs/multi-entity-double-intent.pdf_tex}}
+    \lcaption{Παράδειγμα από δοκιμαστικό σενάριο χρήσης}{%
+        Αρχικό κείμενο: \engquote{Enable the leds of your chest and legs and go left}.
+
+        Εδώ φαίνεται πως το σύστημα έχει τη δυνατότητα να ανιχνεύει πολλαπλές οντότητες σε μια πρόθεση αλλά και να διαχωρίζει δύο προθέσεις σε μια πρόταση.
+    }%
+    \makeatother%
+\end{figure}
+\begin{figure}
+    \centering
+    \makeatletter%
+    \def\svgscale{0.85}%
+    \ig@maxfigure{0.4\textheight}{%
+        \ig@escapeunderscore{\input{images/graphs/replay1.pdf_tex}}}{%
+        \lcaption{Παράδειγμα από δοκιμαστικό σενάριο χρήσης}{%
+            Αρχικό κείμενο: \engquote{Learn motion \engquote{bakasana}. After that, replay it}.
+        }}%
+    \def\svgscale{0.85}%
+    \ig@maxfigure{0.5\textheight}{%
+        \ig@escapeunderscore{\input{images/graphs/replay2.pdf_tex}}}{%
+        \lcaption{Παράδειγμα από δοκιμαστικό σενάριο χρήσης}{%
+            Αρχικό κείμενο: \engquote{Learn motion \engquote{shake hips}. After that, take 5 steps forward, replay the first motion while extending your arms}.
+
+            Εδώ το σύστημα δεν είναι ικανό να αναγνωρίσει αναφορές που βασίζονται σε λογικές διαδικασίες.
+            Για την κατανόηση του \engquote{first motion} θα απαιτούνταν η ταξινόμηση των οντοτήτων σε κλάσεις και η κατανόηση της αρίθμησής τους.
+            Αυτή η διαδικασία μπορεί να αναληφθεί από λογισμικό που επεξεργάζεται την έξοδο του \projectname{}.
+        }}%
+    \makeatother%
+\end{figure}
+\begin{figure}
+    \centering
+    \makeatletter%
+    \def\svgscale{0.85}%
+    \ig@maxfigure{0.4\textheight}{%
+        \ig@escapeunderscore{\input{images/graphs/coref-hand.pdf_tex}}}{%
+        \lcaption{Παράδειγμα από δοκιμαστικό σενάριο χρήσης}{%
+            Αρχικό κείμενο: \engquote{Detect touch on your right hand while waving it}.
+
+            Εδώ γίνεται σωστή επίλυση αναφοράς, μεταξύ διαφορετικών προθέσεων, της αντωνυμίας \engquote{it}.
+        }}%
+    \def\svgscale{0.85}%
+    \ig@maxfigure{0.5\textheight}{%
+        \ig@escapeunderscore{\input{images/graphs/right-node-raising.pdf_tex}}}{%
+        \lcaption{Παράδειγμα από δοκιμαστικό σενάριο χρήσης}{%
+            Αρχικό κείμενο: \engquote{Raise and open your left hand without extending it}.
+
+            Σε αυτό το παράδειγμα το σύστημα επιτυχώς διαχωρίζει μια δύσκολη συντακτική δομή που χρησιμοποιεί την ανύψωση δεξιού κόμβου (βλέπε \fref{subsec:linguistics}).
+            Η οντότητα \engquote{left arm} χρησιμοποιείται επιτυχώς και στις τρεις προθέσεις κίνησης του χεριού:
+            στις δύο πρώτες ως όρισμα του ρήματος στη δομή ανύψωσης δεξιού κόμβου και στην τελευταία μέσω αναφοράς με την αντωνυμία \engquote{it}.
+        }}%
+    \makeatother%
+\end{figure}
+\ig[type=inkscape]{long-corefs}{%
+    \lcaption{Παράδειγμα από δοκιμαστικό σενάριο χρήσης}{%
+        Αρχικό κείμενο: \engquote{Open your left hand and then extend it while saying hello.
+            Then turn left and offer it.
+            If you detect a human face, turn right.
+            Else, move forwards}.
+
+        Σε αυτό το παράδειγμα παρουσιάζεται η δυνατότητα του συστήματος να βρίσκει συναναφορές που βρίσκονται σε μεγάλη απόσταση σε σχέση με τη κύρια αναφορά.
+    }%
+}
+\ig[type=inkscape]{other-coref}{%
+    \lcaption{Παράδειγμα από δοκιμαστικό σενάριο χρήσης}{%
+        Αρχικό κείμενο: \engquote{Move forwards, open your left hand and turn left.
+            If you see a human, close your hand.
+            Else, sit down.}.
+
+        Εδώ φαίνεται πως η αναφορά \engquote{your hand} επιλύεται και χρησιμοποιείται σωστά ως όρισμα στη δεύτερη κίνηση του χεριού.
+    }%
+}
+
+\FloatBarrier
+\subsection{Πραγματικά σενάρια χρήσης}
+Στη συνέχεια, ελέγχθηκε η αποτελεσματικότητα του συστήματος στην παραγωγή κώδικα από σενάρια που συλλέχθηκαν από
+χρήστες\footnote{Τα σενάρια που υποβλήθηκαν βρίσκονται στον σύνδεσμο \url{https://goo.gl/V5FyDH}} που δε συμμετείχαν στη συγγραφή αυτής της εργασίας.
+
+Λόγω της δυσκολίας συλλογής μεγάλου πλήθους δεδομένων εκπαίδευσης (που αποτελεί χρονοβόρα διαδικασία η οποία θεωρήθηκε εκτός των στόχων αυτής της εργασίας),
+το \projectname{} παρουσιάζει μειωμένη απόδοση σε εισόδους που είναι γραμμένες με αρκετά διαφορετικό τρόπο.
+Για παράδειγμα, εμφανίζονται προβλήματα στην αναγνώριση της πρόθεσης προτάσεων που είναι γραμμένες στο τρίτο πρόσωπο (\engquote{NAO does X}) αντί για προστακτική (\engquote{Do X}).
+
+Επίσης, όπου κρίνεται απαραίτητο, γίνονται γραμματικές, ορθογραφικές και συντακτικές διορθώσεις και τοποθετούνται εισαγωγικά.
+Σε αυτή την υποενότητα παρουσιάζονται ενδεικτικά μερικά αποτελέσματα του συστήματος σε αυτά τα κείμενα εισόδου.
+% whisper -> talk
+% βοηθητική πρόθεση \intent{Transition}
+
+\ig[type=inkscape]{22}{%
+    \lcaption{Παράδειγμα από πραγματικό σενάριο χρήσης}{%
+        Αρχικό κείμενο: \engquote{If you see me leaving the house warn me about potential bad weather}.
+
+        Η πρόταση αυτή είναι αρκετά γενική και περιλαμβάνει οντότητες που το σύστημα δεν αναγνωρίζει.
+        Για τη σωστή ανάλυσή της θα απαιτούνταν κάποιο σύστημα υψηλότερης λογικής που θα μπορούσε να κατασκευάσει έναν αλγόριθμο από γενικές έννοιες.
+    }%
+}
+\ig[type=inkscape]{0}{%
+    \lcaption{Παράδειγμα από πραγματικό σενάριο χρήσης}{%
+        Αρχικό κείμενο: \engquote{Initially, say \engquote{Hello everyone}.
+            Then say the current date and time.
+            At the same time, if someone touches you, turn the leds on.
+            Finally, say \engquote{Nice to meet you my friend}.
+        }
+    }%
+}
+\ig[svgwidth=\linewidth,type=inkscape]{1}{%
+    \lcaption{Παράδειγμα από πραγματικό σενάριο χρήσης}{%
+        Αρχικό κείμενο: \engquote{Do the following actions forever:
+            Initially, look right and then look left.
+            At the same time, if someone says \engquote{NAO}, walk one step forward}.
+    }%
+}
+\ig[type=inkscape]{2}{%
+    \lcaption{Παράδειγμα από πραγματικό σενάριο χρήσης}{%
+        Αρχικό κείμενο: \engquote{First of all, say \engquote{What do you want to ask me?}.
+            Then, wait until you hear someone talking.
+            If you hear someone talking, say \engquote{Please speak louder, thank you}}.
+    }%
+}
+\ig[svgscale=0.8,type=inkscape]{3}{%
+    \lcaption{Παράδειγμα από πραγματικό σενάριο χρήσης}{%
+        Αρχικό κείμενο: \engquote{Look for humans, if you detect someone, whisper \engquote{I'm coming}.
+            Then turn on all the leds and wait 5 seconds.
+            After that, shout \engquote{Your time is due}.
+            When this happens, turn the leds off}.
+    }%
+
+    Εδώ στις εκφράσεις \engquote{whisper} και \engquote{shout} αποδίδεται ιδιαίτερη σημασία μέσω των βοηθητικών προθέσεων \intent{Shout} και \intent{Whisper} που μεταφράζονται στην υπαρκτή πρόθεση \intent{Talk}.
+}
+\ig[svgscale=0.8,type=inkscape]{4}{%
+    \lcaption{Παράδειγμα από πραγματικό σενάριο χρήσης}{%
+        Αρχικό κείμενο: \engquote{Look for humans, if you detect someone, make 3 steps towards that way.
+            When this happens, turn on the leds and wait 4 seconds.
+            At the same time shout \engquote{Hello human}.
+            When this happens, turn the leds off.
+            Finally, whisper \engquote{You're doomed}}.
+    }%
+}
+\ig[svgscale=0.8,type=inkscape]{19}{%
+    \lcaption{Παράδειγμα από πραγματικό σενάριο χρήσης}{%
+        Αρχικό κείμενο: \engquote{Start trying to find a human.
+            Once you find one, do the following: Say \engquote{Hello mortal, let's play a luck-based game}.
+            Then, say \engquote{Teach me one motion for my left hand}.
+            Then, learn the 1st motion.
+            Then, say \engquote{Teach me a motion for my right hand}.
+            Then, learn the 2nd motion.
+            Then, say \engquote{Teach me a motion for my head}'.
+            Then, learn the 3rd motion.
+            Once you have learned all the motions, say \engquote{Ok now guess which motion I will make}' and start listening for either \engquote{1}, \engquote{2} or \engquote{3}.
+            Once you hear \engquote{1}, \engquote{2} or \engquote{3},
+            make randomly one of the 3 motions you learned and if that motion is the same as the one the user said say \engquote{You won!},
+            else say \engquote{You lost, I told you, you are mortal after all!}}
+
+        Στο τέλος, η σωστή ανίχνευση των προθέσεων αποτυχαίνει καθώς απαιτείται η χρήση λογικής.
+    }%
+}
 
 % vim:ts=4:sw=4:expandtab:fo-=tc:tw=120

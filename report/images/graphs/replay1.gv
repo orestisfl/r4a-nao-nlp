@@ -1,0 +1,11 @@
+strict digraph  {
+Start [sent_idx=0];
+"LearnMotion(name=\"bakasana\")" [idx=0, idx_main=0, sent_idx=0, shape=box];
+"End-0" [sent_idx=0];
+"ReplayMotion(name=\"bakasana\")" [idx=0, idx_main=0, sent_idx=1, shape=box];
+"End-1" [sent_idx=1];
+Start -> "LearnMotion(name=\"bakasana\")"  [label=""];
+"LearnMotion(name=\"bakasana\")" -> "End-0"  [label="."];
+"End-0" -> "ReplayMotion(name=\"bakasana\")"  [label="After that,"];
+"ReplayMotion(name=\"bakasana\")" -> "End-1"  [label=""];
+}

@@ -1,0 +1,27 @@
+strict digraph  {
+Start [sent_idx=0];
+"ArmMotion(armMotion=OPEN,arm=LEFT)" [idx=0, idx_main=0, sent_idx=0, shape=box];
+"ArmMotion(armMotion=EXTEND,arm=LEFT)" [idx=1, idx_main=1, sent_idx=0, shape=box];
+"Talk(text=hello)" [idx=2, sent_idx=0, shape=box];
+"End-0" [sent_idx=0];
+"BodyMotion(direction=LEFT)" [idx=0, idx_main=0, sent_idx=1, shape=box];
+"ArmMotion(armMotion=OFFER,arm=LEFT)" [idx=1, idx_main=1, sent_idx=1, shape=box];
+"End-1" [sent_idx=1];
+"DetectHuman(bDetectForever=face)" [idx=0, sent_idx=2, shape=box];
+"BodyMotion(direction=RIGHT)" [idx=1, idx_main=0, sent_idx=2, shape=box];
+"End-2" [sent_idx=2];
+"BodyMotion(direction=FORWARDS)" [idx=0, idx_main=0, sent_idx=3, shape=box];
+"End-3" [sent_idx=3];
+Start -> "ArmMotion(armMotion=OPEN,arm=LEFT)"  [label=""];
+"ArmMotion(armMotion=OPEN,arm=LEFT)" -> "ArmMotion(armMotion=EXTEND,arm=LEFT)"  [label="and then"];
+"ArmMotion(armMotion=EXTEND,arm=LEFT)" -> "End-0"  [label="."];
+"Talk(text=hello)" -> "ArmMotion(armMotion=EXTEND,arm=LEFT)"  [label="while"];
+"End-0" -> "BodyMotion(direction=LEFT)"  [label="Then"];
+"BodyMotion(direction=LEFT)" -> "ArmMotion(armMotion=OFFER,arm=LEFT)"  [label="and"];
+"ArmMotion(armMotion=OFFER,arm=LEFT)" -> "End-1"  [label="."];
+"End-1" -> "BodyMotion(direction=RIGHT)"  [label=","];
+"DetectHuman(bDetectForever=face)" -> "BodyMotion(direction=RIGHT)"  [label="If"];
+"BodyMotion(direction=RIGHT)" -> "End-2"  [label="."];
+"End-2" -> "BodyMotion(direction=FORWARDS)"  [label="Else,"];
+"BodyMotion(direction=FORWARDS)" -> "End-3"  [label="."];
+}

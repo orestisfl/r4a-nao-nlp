@@ -20,6 +20,8 @@
 # *.ps
 # *.eps
 thesis.pdf
+images/graphs/*.pdf
+images/graphs/*.pdf_tex
 images/*.pgf
 images/__pycache__
 

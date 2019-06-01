@@ -1,0 +1,25 @@
+strict digraph  {
+Start [sent_idx=0];
+"DetectHuman()" [idx=0, idx_main=0, sent_idx=0, shape=box];
+"End-0" [sent_idx=0];
+"TurnLedOn()" [idx=0, idx_main=0, sent_idx=1, shape=box];
+"Sleep(duration=0:00:04)" [idx=1, idx_main=1, sent_idx=1, shape=box];
+"End-1" [sent_idx=1];
+"Talk(volume=100,text=\"Hello human\")" [idx=0, idx_main=0, sent_idx=2, shape=box];
+"End-2" [sent_idx=2];
+"TurnLedOff()" [idx=0, idx_main=0, sent_idx=3, shape=box];
+"End-3" [sent_idx=3];
+"Talk(volume=10,text=\"You're doomed\")" [idx=0, idx_main=0, sent_idx=4, shape=box];
+"End-4" [sent_idx=4];
+Start -> "DetectHuman()"  [label="Look for humans, if"];
+"DetectHuman()" -> "End-0"  [label=", make 3 steps towards that way."];
+"End-0" -> "TurnLedOn()"  [label="When this happens,"];
+"TurnLedOn()" -> "Sleep(duration=0:00:04)"  [label="and"];
+"Sleep(duration=0:00:04)" -> "End-1"  [label="."];
+"End-1" -> "Talk(volume=100,text=\"Hello human\")"  [label="At the same time"];
+"Talk(volume=100,text=\"Hello human\")" -> "End-2"  [label="."];
+"End-2" -> "TurnLedOff()"  [label="When this happens,"];
+"TurnLedOff()" -> "End-3"  [label="."];
+"End-3" -> "Talk(volume=10,text=\"You're doomed\")"  [label="Finally,"];
+"Talk(volume=10,text=\"You're doomed\")" -> "End-4"  [label="."];
+}

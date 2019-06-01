@@ -1,0 +1,19 @@
+strict digraph  {
+Start [sent_idx=0];
+"Talk(text=\"Hello everyone\")" [idx=0, idx_main=0, sent_idx=0, shape=box];
+"End-0" [sent_idx=0];
+"End-1" [sent_idx=1];
+"DetectTouch()" [idx=0, sent_idx=2, shape=box];
+"TurnLedOn()" [idx=1, idx_main=0, sent_idx=2, shape=box];
+"End-2" [sent_idx=2];
+"Talk(text=\"Nice to meet you my friend\")" [idx=0, idx_main=0, sent_idx=3, shape=box];
+"End-3" [sent_idx=3];
+Start -> "Talk(text=\"Hello everyone\")"  [label="Initially,"];
+"Talk(text=\"Hello everyone\")" -> "End-0"  [label="."];
+"End-0" -> "End-1"  [label="Then say the current date and time."];
+"End-1" -> "TurnLedOn()"  [label="At the same time, ,"];
+"DetectTouch()" -> "TurnLedOn()"  [label="if"];
+"TurnLedOn()" -> "End-2"  [label="."];
+"End-2" -> "Talk(text=\"Nice to meet you my friend\")"  [label="Finally,"];
+"Talk(text=\"Nice to meet you my friend\")" -> "End-3"  [label=""];
+}

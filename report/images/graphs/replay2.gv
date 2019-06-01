@@ -1,0 +1,16 @@
+strict digraph  {
+Start [sent_idx=0];
+"LearnMotion(name=\"shake hips\")" [idx=0, idx_main=0, sent_idx=0, shape=box];
+"End-0" [sent_idx=0];
+"BodyMotion(direction=FORWARDS,distance=5 steps)" [idx=0, idx_main=0, sent_idx=1, shape=box];
+"ReplayMotion()" [idx=1, idx_main=1, sent_idx=1, shape=box];
+"ArmMotion(armMotion=EXTEND,arm=BOTH)" [idx=2, sent_idx=1, shape=box];
+"End-1" [sent_idx=1];
+{rank="same" "ArmMotion(armMotion=EXTEND,arm=BOTH)" "End-0"}
+Start -> "LearnMotion(name=\"shake hips\")"  [label=""];
+"LearnMotion(name=\"shake hips\")" -> "End-0"  [label="."];
+"End-0" -> "BodyMotion(direction=FORWARDS,distance=5 steps)"  [label="After that,"];
+"BodyMotion(direction=FORWARDS,distance=5 steps)" -> "ReplayMotion()"  [label=","];
+"ReplayMotion()" -> "End-1"  [label="."];
+"ArmMotion(armMotion=EXTEND,arm=BOTH)" -> "ReplayMotion()"  [label="while"];
+}

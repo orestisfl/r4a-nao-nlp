@@ -1,0 +1,23 @@
+strict digraph  {
+Start [sent_idx=0];
+"DetectHuman()" [idx=0, sent_idx=0, shape=box];
+"Talk(volume=10,text=\"I'm coming\")" [idx=1, idx_main=0, sent_idx=0, shape=box];
+"End-0" [sent_idx=0];
+"TurnLedOn(leds=ALL_LEDS)" [idx=0, idx_main=0, sent_idx=1, shape=box];
+"Sleep(duration=0:00:05)" [idx=1, idx_main=1, sent_idx=1, shape=box];
+"End-1" [sent_idx=1];
+"Talk(volume=100,text=\"Your time is due\")" [idx=0, idx_main=0, sent_idx=2, shape=box];
+"End-2" [sent_idx=2];
+"TurnLedOff()" [idx=0, idx_main=0, sent_idx=3, shape=box];
+"End-3" [sent_idx=3];
+Start -> "Talk(volume=10,text=\"I'm coming\")"  [label="Look for humans, ,"];
+"DetectHuman()" -> "Talk(volume=10,text=\"I'm coming\")"  [label="if"];
+"Talk(volume=10,text=\"I'm coming\")" -> "End-0"  [label="."];
+"End-0" -> "TurnLedOn(leds=ALL_LEDS)"  [label="Then"];
+"TurnLedOn(leds=ALL_LEDS)" -> "Sleep(duration=0:00:05)"  [label="and"];
+"Sleep(duration=0:00:05)" -> "End-1"  [label="."];
+"End-1" -> "Talk(volume=100,text=\"Your time is due\")"  [label="After that,"];
+"Talk(volume=100,text=\"Your time is due\")" -> "End-2"  [label="."];
+"End-2" -> "TurnLedOff()"  [label=","];
+"TurnLedOff()" -> "End-3"  [label="."];
+}

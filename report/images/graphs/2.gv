@@ -1,0 +1,18 @@
+strict digraph  {
+Start [sent_idx=0];
+"Talk(text=\"What do you want to ask me?\")" [idx=0, idx_main=0, sent_idx=0, shape=box];
+"End-0" [sent_idx=0];
+"Sleep()" [idx=0, idx_main=0, sent_idx=1, shape=box];
+"DetectSound()" [idx=0, sent_idx=2, shape=box];
+"End-1" [sent_idx=1];
+"Talk(text=\"Please speak louder, thank you\")" [idx=1, idx_main=0, sent_idx=2, shape=box];
+"End-2" [sent_idx=2];
+Start -> "Talk(text=\"What do you want to ask me?\")"  [label="First of all,"];
+"Talk(text=\"What do you want to ask me?\")" -> "End-0"  [label="."];
+"End-0" -> "Sleep()"  [label="Then,"];
+"Sleep()" -> "End-1"  [label="."];
+"DetectSound()" -> "Sleep()"  [label="until"];
+"DetectSound()" -> "Talk(text=\"Please speak louder, thank you\")"  [label="If"];
+"End-1" -> "Talk(text=\"Please speak louder, thank you\")"  [label=","];
+"Talk(text=\"Please speak louder, thank you\")" -> "End-2"  [label="."];
+}
