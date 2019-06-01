@@ -27,6 +27,7 @@ setup(
     extras_require=extras_add_all(
         {
             "plots": ["matplotlib", "adjustText"],
+            "graphviz": ["pydot"],
             "ecore": ["pyecore", "PyYAML", "braceexpand"],
             "train": ["braceexpand"],  # snips-nlu-en
             "CoreNLP-server": ["requests"],

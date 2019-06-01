@@ -45,6 +45,21 @@ class Graph(nx.DiGraph):
     def connect_prev(self, node: Node, words: List[Token]) -> None:
         self.add_edge(self.prev_end, words, node)
 
+    def to_pydot(self, filename: str = "out.gv") -> None:
+        """Convert graph to DOT language and save"""
+        # TODO: escape underscores
+        g = nx.relabel_nodes(self, self.node_label_mapping)
+        # Use boxes for subsentences
+        for _, d in g.nodes(data=True):
+            if "idx" not in d:
+                continue
+            d["shape"] = "box"
+        # Always quote labels to avoid issues
+        for u, v, d in g.edges(data=True):
+            g[u][v]["label"] = '"' + _data_label(d) + '"'
+        with open(filename, "w") as f:
+            nx.drawing.nx_pydot.write_dot(g, f)
+
     # TODO: Nodes in same height + vertical height?
     # TODO: Return
     def plot(self, filename: str = "out.pdf"):
@@ -68,9 +83,7 @@ class Graph(nx.DiGraph):
                 # TODO: better text positioning
                 {key: value + (0.0, 0.08) for key, value in pos.items()},
                 font_size=6,
-                labels={
-                    n: n if isinstance(n, str) else str(n.parsed) for n in self.nodes()
-                },
+                labels=self.node_label_mapping,
             ).values()
         )
 
@@ -80,6 +93,19 @@ class Graph(nx.DiGraph):
         plt.savefig(filename)
         plt.close()
         return node_collection, edge_collection
+
+    @property
+    def node_label_mapping(self):
+        return {
+            n: n
+            if isinstance(n, str)
+            else (
+                f"Transition({n.parsed.input})"
+                if n.parsed.name == "Transition"
+                else str(n.parsed)
+            )
+            for n in self.nodes()
+        }
 
     def _create_pos(self) -> Dict[Node, ndarray]:
         import numpy

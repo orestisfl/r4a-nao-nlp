@@ -331,6 +331,7 @@ class SnipsResult:
     score: float = 0.0
     name: Optional[str] = None
     slots: Tuple[SnipsSlot] = ()
+    input: Optional[str] = None
 
     @classmethod
     def from_parsed(cls, parsed: Optional[JsonDict] = None):
@@ -345,6 +346,7 @@ class SnipsResult:
             score=parsed["intent"]["probability"],
             name=parsed["intent"]["intentName"],
             slots=tuple(SnipsSlot.from_parsed(slot) for slot in parsed["slots"]),
+            input=parsed.get("input", None),
         )
 
     def to_eobject(self) -> EObject:
