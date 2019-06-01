@@ -4,3 +4,4 @@
 {Run,Running,Go,Going,Move,Moving,Walk,Walking} forwards at{, a speed of} [speedNum] / [speedDen](h)
 {Advance,Advancing} [distance]
 {Make,Making,Take,Taking} [distance](a step) {forwards,straight}
+{Make,Making,Take,Taking} [distance]({3,three,some} steps)  {forwards,straight}
