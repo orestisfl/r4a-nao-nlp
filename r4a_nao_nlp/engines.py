@@ -306,8 +306,15 @@ def _predictor_server(path, qi, qo):
     atexit._clear()
 
     from allennlp.predictors.predictor import Predictor
+    from allennlp.predictors.semantic_role_labeler import SemanticRoleLabelerPredictor
+    from allennlp.data.tokenizers.word_splitter import SpacyWordSplitter
+
+    # Use en_core_web_md for tokenizer instead
+    # TODO: make optional
+    SemanticRoleLabelerPredictor.__init__ = Predictor.__init__
 
     predictor = Predictor.from_path(path)
+    predictor._tokenizer = SpacyWordSplitter(language="en_core_web_md", pos_tags=True)
     while True:
         s = qi.get()
         if s is None:
