@@ -28,6 +28,8 @@ function start_corenlp() {
     # Use port 9001 by default
     sed -i 's/localhost:9000/localhost:9001/' $(find . -name '*.py')
 
+    lsof -i -P -n | grep LISTEN | grep java | grep 9001 &>/dev/null && exit
+
     cd stanford-corenlp-full-2018-10-05
 
     nohup java -Dorg.slf4j.simpleLogger.defaultLogLevel=debug -mx9g -cp '*:lib/*' edu.stanford.nlp.pipeline.StanfordCoreNLPServer -timeout 100000 -threads 2 -port 9001 &
