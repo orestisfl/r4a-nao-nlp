@@ -166,7 +166,7 @@ class SubSentence:
         logger.debug("Parsing using tokens: %s", tokens)
         return max(
             (
-                (n_coref_replacements, shared.parse_tokens(tokens_to_parse))
+                (n_coref_replacements, shared.parse_tokens(tokens_to_parse, to_lemmatize=self.verb))
                 for n_coref_replacements, tokens_to_parse in self._coref_combinations(
                     tokens
                 )

@@ -23,6 +23,7 @@ if TYPE_CHECKING:
         JsonDict,
         Language,
         SnipsNLUEngine,
+        Span,
         Token,
     )
     from r4a_nao_nlp.utils import before_37
@@ -49,6 +50,7 @@ class Shared:
         self._core_nlp_server_url: Optional[str] = None
 
         self._transformations: JsonDict = {}
+        self._lemmatizer: Optional["spacy.lemmatizer.Lemmatizer"] = None
 
     @utils.timed
     def init(
@@ -159,7 +161,9 @@ class Shared:
             Token.set_extension("quote", default=None, force=True)
 
     @lru_cache(maxsize=1024)
-    def _parse(self, s: str) -> JsonDict:
+    def _parse(
+        self, s: str, intents: Optional[Union[str, Iterable[str]]] = None
+    ) -> JsonDict:
         logger.debug("Passing '%s' to snips engine", s)
         return self._transform(self._engine.parse(s))
 
@@ -170,51 +174,12 @@ class Shared:
         logger.debug("Result = '%s'", result)
         return result
 
-    def parse_tokens(self, tokens: Sequence[Token]) -> SnipsResult:
-        s = " ".join(str(t) for t in tokens)  # TODO: better whitespace
-        if not self._core_nlp_server_url or all(t._.quote is None for t in tokens):
-            return self.parse(s)
-
-        idx_to_token = {}
-        idx = 0
-        for token in tokens:
-            start = idx
-            idx += len(token)
-            idx_to_token[(start, idx)] = token
-            idx += 1
-
-        # Copy since we modify what is returned by the lru_cache.
-        result = copy.deepcopy(self._parse(s))
-        # We don't bother to modify "input" so it will be invalid afterwards, make sure
-        # we don't use it later.
-        del result["input"]
-
-        offset = 0
-        for slot in result["slots"]:
-            if slot["range"]["start"] < 0:
-                continue
-
-            raw = slot.get("rawValue", "")
-            idx = slot["range"]["start"]
-
-            slot["range"]["start"] += offset
-
-            raw_tokens = []
-            for raw_token in raw.split(" "):
-                start = idx
-                idx += len(raw_token)
-                replacement = idx_to_token[(start, idx)]._.quote
-                if replacement:
-                    assert raw_token == QUOTE_STRING
-                    raw_tokens.append(replacement)
-                    offset += len(replacement) - len(raw_token)
-                else:
-                    raw_tokens.append(raw_token)
-                idx += 1
-            slot["rawValue"] = slot["value"]["value"] = " ".join(raw_tokens)
-
-            slot["range"]["end"] += offset
-
+    def parse_tokens(
+        self, tokens: Sequence[Token], to_lemmatize: Optional[Span] = None
+    ) -> SnipsResult:
+        result = self._parse_with_lemmatize(tokens, to_lemmatize)
+        if self._core_nlp_server_url and any(t._.quote is not None for t in tokens):
+            result = _replace_quotes(result, tokens)
         snips_result = SnipsResult.from_parsed(result)
         logger.debug("Result = '%s'", snips_result)
         return snips_result
@@ -243,6 +208,34 @@ class Shared:
             )
 
         return parsed
+
+    def _parse_with_lemmatize(
+        self, tokens: Sequence[Token], to_lemmatize: Optional[Span] = None
+    ):
+        s = " ".join(str(t) for t in tokens)  # TODO: better whitespace
+        result = self._parse(s)
+        score = result["intent"]["probability"]
+        if not to_lemmatize or score >= 1.0:
+            return result
+
+        s_alt = " ".join(
+            self.lemmatize(str(t), "VERB") if t in to_lemmatize else str(t)
+            for t in tokens
+        )
+        if s_alt == s:
+            return result
+
+        alt = self._parse(s_alt)
+        if score > alt["intent"]["probability"] or alt["intent"]["intentName"] is None:
+            return result
+
+        alt = shared._parse(s, intents=alt["intent"]["intentName"])
+        # If Snips parses to None with the reduced scope, prefer the original score.
+        # This helps to avoid editing the original result and would probably be a bad
+        # idea to force the change anyway.
+        if alt["intent"]["intentName"] is None:
+            return result
+        return alt
 
     def srl_put(self, s: str) -> None:
         logger.debug("SRL put: %s", s)
@@ -297,6 +290,14 @@ class Shared:
             f"{r.status_code}{' - ' + r.text if r.text else ''}"
         )
 
+    def lemmatize(self, *args, **kwargs):
+        if not self._lemmatizer:
+            from spacy.lemmatizer import Lemmatizer
+            from spacy.lang.en import LEMMA_INDEX, LEMMA_EXC, LEMMA_RULES
+
+            self._lemmatizer = Lemmatizer(LEMMA_INDEX, LEMMA_EXC, LEMMA_RULES)
+        return self._lemmatizer(*args, **kwargs)[0]
+
 
 def _predictor_server(path, qi, qo):
     # Using os.fork() (called from multiprocessing) and allowing cleanups to be run like
@@ -321,6 +322,50 @@ def _predictor_server(path, qi, qo):
     # https://github.com/allenai/allennlp/blob/fefc439035df87e3d2484eb2f53ca921c4c2e2fe/allennlp/models/archival.py#L176-L178
     logger.debug("atexit should call %d callbacks", atexit._ncallbacks())
     atexit._run_exitfuncs()
+
+
+def _replace_quotes(parse_result: JsonDict, tokens: Sequence[Token]) -> JsonDict:
+    idx_to_token = {}
+    idx = 0
+    for token in tokens:
+        start = idx
+        idx += len(token)
+        idx_to_token[(start, idx)] = token
+        idx += 1
+
+    # Copy since we modify what is returned by the lru_cache.
+    result = copy.deepcopy(parse_result)
+    # We don't bother to modify "input" so it will be invalid afterwards, make sure
+    # we don't use it later.
+    del result["input"]
+
+    offset = 0
+    for slot in result["slots"]:
+        if slot["range"]["start"] < 0:
+            continue
+
+        raw = slot.get("rawValue", "")
+        idx = slot["range"]["start"]
+
+        slot["range"]["start"] += offset
+
+        raw_tokens = []
+        for raw_token in raw.split(" "):
+            start = idx
+            idx += len(raw_token)
+            replacement = idx_to_token[(start, idx)]._.quote
+            if replacement:
+                assert raw_token == QUOTE_STRING
+                raw_tokens.append(replacement)
+                offset += len(replacement) - len(raw_token)
+            else:
+                raw_tokens.append(raw_token)
+            idx += 1
+        slot["rawValue"] = slot["value"]["value"] = " ".join(raw_tokens)
+
+        slot["range"]["end"] += offset
+
+    return result
 
 
 @total_ordering
