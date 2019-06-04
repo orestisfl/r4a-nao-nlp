@@ -299,6 +299,13 @@
     \lowercase{\def\tmp{#2}}%
     \lib{#2}\index{#1#2}~\cite{\tmp}%
 }
+% Break a url if needed
+\newcommand{\breakurl}[1]{%
+    \begingroup%
+    \def\UrlBigBreaks{\do\/\do-\do:}%https://tex.stackexchange.com/a/269122/
+    \url{#1}%
+    \endgroup%
+}
 % hyperref shortcuts
 \newcommand{\TOCr}{\hyperref[sec:TOC]{\MakeLowercase{\contentsname}}}
 \newcommand{\TOCR}{\hyperref[sec:TOC]{\contentsname}}
