@@ -1,0 +1,9 @@
+strict digraph  {
+Start [sent_idx=0];
+"TurnLedOn(leds=CHEST_LEDS,leds=FEET_LEDS)" [idx=0, idx_main=0, sent_idx=0, shape=box];
+"BodyMotion(direction=LEFT)" [idx=1, idx_main=1, sent_idx=0, shape=box];
+"End-0" [sent_idx=0];
+Start -> "TurnLedOn(leds=CHEST_LEDS,leds=FEET_LEDS)"  [label=""];
+"TurnLedOn(leds=CHEST_LEDS,leds=FEET_LEDS)" -> "BodyMotion(direction=LEFT)"  [label="and"];
+"BodyMotion(direction=LEFT)" -> "End-0"  [label=""];
+}

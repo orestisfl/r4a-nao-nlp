@@ -1,0 +1,50 @@
+\begin{tikzpicture}[
+        auto,
+        block/.style = {draw, fill=white, rectangle, minimum height=3em, minimum width=3em, text centered, align=center},
+        >=Stealth
+    ]
+    % Use links to appropriate sections
+    \hypersetup{linkcolor=black}
+    % Nodes
+    \node[coordinate, name=input] (input) {};
+    \node[block, right=of input, text width=width("QuoteAnnotator")] (QuoteAnnotator) {\hyperref[subsec:4-QuoteAnnotator]{replace quotes w/ \texttt{QuoteAnnotator}}};
+    \node[coordinate, right=of QuoteAnnotator] (inputq) {};
+    \node[block, above=of inputq] (coref) {\hyperref[subsec:4-CorefAnnotator]{\texttt{CorefAnnotator}}};
+    \node[block, below=of inputq] (spacy) {\hyperref[subsec:4-spacy]{spacy} w/\\\hyperref[subsec:4-neuralcoref]{neuralcoref}};
+    \node[block, right=of inputq, text width=width("combine")] (enhanceq) {\hyperref[subsec:4-coref-combine]{combine corefs}};
+    \node[block, right=of coref] (sents) {\hyperref[subsec:4-sents]{\texttt{.sents}}};
+    \node[block, right=1.3cm of sents] (SRL) {\hyperref[subsec:4-allenSRL]{SRL}}; % Large enough to hold edge's label
+    \node[block, right=of SRL, text width=width("subsentence")] (subs) {\hyperref[subsec:4-subsentence-create]{create subsentence $\forall$ predicate}};
+    \node[block, below=of subs, text width=width("subsentences")] (combine) {\hyperref[subsec:4-subsentence-combine]{combine subsentences}};
+    \node[block, left=of combine, text width=width("$\forall$ combination")] (powerset) {\hyperref[subsec:4-powerset]{$\forall$ combination of \texttt{ARGM}s and corefs}};
+    \node[block, below=of powerset] (snipsi) {\hyperref[subsec:4-snips]{Snips}\\
+        \hyperref[subsec:4-snips]{intent classification}};
+    \node[block, below=of snipsi] (snipse) {\hyperref[subsec:4-snips]{Snips}\\
+        \hyperref[subsec:4-snips]{slot filling}\\
+        \& \hyperref[subsec:4-snips]{entity resolution}};
+    \node[block, left=of snipse] (score) {\hyperref[subsec:4-score]{pick max score}};
+    \node[block] at (score |- snipsi) (graph) {\hyperref[subsec:4-DiGraph]{create \texttt{DiGraph}}};
+    \node[block, left=of score] (format) {\hyperref[subsec:4-format]{format}};
+    \node[coordinate, below=of format] (out) {};
+    % Box around Snips NLU
+    \node[draw, dashed, fit=(snipsi) (snipse)] (snips) {};
+    \node[above right, inner sep=0pt] (snipsl) at (snips.north west) {Snips NLU};
+    % Arrows
+    \draw[->] (input) -- node{$s$} (QuoteAnnotator);
+    \draw[-] (QuoteAnnotator) -- node{$s_q$} (inputq);
+    \draw[->] (QuoteAnnotator) -| (coref);
+    \draw[->] (QuoteAnnotator) -| (spacy);
+    \draw[->] (spacy) -| node[below]{\texttt{Doc}} (enhanceq);
+    \draw[->] (coref) -| (enhanceq);
+    \draw[->] (enhanceq) -| node[below]{\texttt{Doc}} (sents);
+    \draw[->] (sents) -- node{\texttt{[Span]}} (SRL);
+    \draw[->] (SRL) -- (subs);
+    \draw[->] (subs) -- (combine);
+    \draw[->] (combine) -- (powerset);
+    \draw[-] (powerset) -- (snipsi);
+    \draw[->] (snipsi) -- (snipse);
+    \draw[->] (snipse) -- (score);
+    \draw[->] (score) -- (graph);
+    \draw[->] (graph) -| (format);
+    \draw[->] (format) -- node{output} (out);
+\end{tikzpicture}

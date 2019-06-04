@@ -1,0 +1,21 @@
+\begin{tikzpicture}
+    \begin{scope}[every node/.style={circle,thick,draw}]
+        \node (A) at (0,2) {A};
+        \node (B) at (2,2) {B};
+        \node (C) at (-1,0) {C};
+        \node (D) at (1,0) {D};
+        \node (E) at (-2,-2) {E};
+        \node (F) at (0,-2) {F};
+    \end{scope}
+
+    \begin{scope}[>={Stealth[black]},
+        every edge/.style={draw=red,very thick}]
+        \path[->] (A) edge (C);
+        \path[->] (A) edge (D);
+        \path[->] (B) edge (D);
+        \path[<->] (C) edge (D);
+        \path[->] (C) edge (E);
+        \path[->] (C) edge (F);
+        \path[->] (D) edge (F);
+    \end{scope}
+\end{tikzpicture}

@@ -1,0 +1,2 @@
+group_skip ""
+preamble "\\begin{theindex}\\label{index}\n"

@@ -1,0 +1,12 @@
+strict digraph  {
+Start [sent_idx=0];
+"ArmMotion(armMotion=UP,arm=LEFT)" [idx=0, idx_main=0, sent_idx=0, shape=box];
+"ArmMotion(armMotion=OPEN,arm=LEFT)" [idx=1, idx_main=1, sent_idx=0, shape=box];
+"ArmMotion(armMotion=EXTEND,arm=LEFT)" [idx=2, sent_idx=0, shape=box];
+"End-0" [sent_idx=0];
+Start -> "ArmMotion(armMotion=UP,arm=LEFT)"  [label=""];
+"ArmMotion(armMotion=UP,arm=LEFT)" -> "ArmMotion(armMotion=OPEN,arm=LEFT)"  [label="and"];
+"ArmMotion(armMotion=OPEN,arm=LEFT)" -> "End-0"  [label=""];
+"ArmMotion(armMotion=EXTEND,arm=LEFT)" -> "ArmMotion(armMotion=UP,arm=LEFT)"  [label="without"];
+"ArmMotion(armMotion=EXTEND,arm=LEFT)" -> "ArmMotion(armMotion=OPEN,arm=LEFT)"  [label="without"];
+}

@@ -1,0 +1,19 @@
+indentPreamble: 1
+defaultIndent: "    "
+modifyLineBreaks:
+    preserveBlankLines: 1
+    condenseMultipleBlankLinesInto: 1
+verbatimEnvironments:
+    code: 1
+    algcode: 1
+noAdditionalIndent:
+    english: 1
+onlyOneBackUp: 1
+lookForAlignDelims:
+    conditions: 1
+    tabulary: 1
+fileExtensionPreference:
+    .tikz: 5
+indentAfterItems:
+    compactitem: 1
+    compactenum: 1

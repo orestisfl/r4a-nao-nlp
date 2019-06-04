@@ -1,0 +1,19 @@
+strict digraph  {
+Start [sent_idx=0];
+"Transition(Do the following actions)" [idx=0, idx_main=0, sent_idx=0, shape=box];
+"HeadMotion(direction=RIGHT)" [idx=1, idx_main=1, sent_idx=0, shape=box];
+"None()" [idx=2, idx_main=2, sent_idx=0, shape=box];
+"BodyMotion(direction=LEFT)" [idx=3, sent_idx=0, shape=box];
+"End-0" [sent_idx=0];
+"Listen(lexicon=\"NAO\")" [idx=0, sent_idx=1, shape=box];
+"BodyMotion(direction=FORWARDS,distance=one step)" [idx=1, idx_main=0, sent_idx=1, shape=box];
+"End-1" [sent_idx=1];
+Start -> "Transition(Do the following actions)"  [label=""];
+"Transition(Do the following actions)" -> "HeadMotion(direction=RIGHT)"  [label="forever: Initially,"];
+"HeadMotion(direction=RIGHT)" -> "None()"  [label="and"];
+"None()" -> "End-0"  [label="."];
+"BodyMotion(direction=LEFT)" -> "None()"  [label=""];
+"End-0" -> "BodyMotion(direction=FORWARDS,distance=one step)"  [label="At the same time, ,"];
+"Listen(lexicon=\"NAO\")" -> "BodyMotion(direction=FORWARDS,distance=one step)"  [label="if"];
+"BodyMotion(direction=FORWARDS,distance=one step)" -> "End-1"  [label="."];
+}

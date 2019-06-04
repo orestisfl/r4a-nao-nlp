@@ -1,0 +1,21 @@
+strict digraph  {
+Start [sent_idx=0];
+"BodyMotion(direction=FORWARDS)" [idx=0, idx_main=0, sent_idx=0, shape=box];
+"ArmMotion(armMotion=OPEN,arm=LEFT)" [idx=1, idx_main=1, sent_idx=0, shape=box];
+"BodyMotion(direction=LEFT)" [idx=2, idx_main=2, sent_idx=0, shape=box];
+"End-0" [sent_idx=0];
+"DetectHuman()" [idx=0, sent_idx=1, shape=box];
+"ArmMotion(armMotion=CLOSE,arm=LEFT)" [idx=1, idx_main=0, sent_idx=1, shape=box];
+"End-1" [sent_idx=1];
+"BodyStance(stance=SIT)" [idx=0, idx_main=0, sent_idx=2, shape=box];
+"End-2" [sent_idx=2];
+Start -> "BodyMotion(direction=FORWARDS)"  [label=""];
+"BodyMotion(direction=FORWARDS)" -> "ArmMotion(armMotion=OPEN,arm=LEFT)"  [label=","];
+"ArmMotion(armMotion=OPEN,arm=LEFT)" -> "BodyMotion(direction=LEFT)"  [label="and"];
+"BodyMotion(direction=LEFT)" -> "End-0"  [label="."];
+"End-0" -> "ArmMotion(armMotion=CLOSE,arm=LEFT)"  [label=","];
+"DetectHuman()" -> "ArmMotion(armMotion=CLOSE,arm=LEFT)"  [label="If"];
+"ArmMotion(armMotion=CLOSE,arm=LEFT)" -> "End-1"  [label="."];
+"End-1" -> "BodyStance(stance=SIT)"  [label="Else,"];
+"BodyStance(stance=SIT)" -> "End-2"  [label="."];
+}
