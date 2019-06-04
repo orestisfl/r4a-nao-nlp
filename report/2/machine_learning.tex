@@ -260,7 +260,60 @@
 Σε αντίθεση με τα μοντέλα \hyperref[sec:linear-regression]{γραμμικής} και \hyperref[sec:logistic-regression]{λογιστικής} παλινδρόμησης,
 τα CRF πραγματοποιούν ταξινόμηση εξαρτώμενη από τα συμφραζόμενα, δηλαδή μοντελοποιούν και τις σχέσεις ανάμεσα στα διανύσματα εισόδου.
 
-\section{Νευρωνικά δίκτυα}\label{sec:neural-networks} % TODO
-\subsection{Βαθιά μάθηση}\label{subsec:deep-learning} % TODO
+\section{Νευρωνικά δίκτυα}\label{sec:neural-networks}
+\ig[type=tikz]{neural-network}{\lcaption{Ένα νευρωνικό δίκτυο}{%
+        Από \breakurl{http://www.texample.net/tikz/examples/neural-network/}.%
+    }%
+}
+Τα \newterm{Νευρωνικά Δίκτυα}{Neural Networks} ή \newtermsee{Τεχνητά Νευρωνικά Δίκτυα}{Artificial Neural Networks - ANN}{Νευρωνικά Δίκτυα - Neural Networks}
+αποτελούν ένα μαθηματικό μοντέλο που αρχικά εμπνεύσθηκε από τη λειτουργία του βιολογικού εγκεφάλου, χωρίς όμως να προσπαθεί να την προσομοιώσει~\cite{goodfellow}.
+
+Βασικό δομικό στοιχείο ενός νευρωνικού δικτύου είναι ο \newterm[Νευρωνικά Δίκτυα - Neural Networks]{Νευρώνας}{Neuron},
+συνάρτηση που λαμβάνει $M$ εισόδους και δίνει μία έξοδο:
+\begin{equation}
+    f(\vx) = \text{act}\left(\sum_i{w_i x_i} + b\right) = \text{act}\left(\vw^\intercal \vx + b\right)
+\end{equation}
+Όπου:
+\begin{conditions}
+    \vw        & \newtermprint[Weight Vector]{διάνυσμα βαρών}                                                      \\
+    \vx        & το διάνυσμα εισόδου                                                                               \\
+    b          & η \newterm[Νευρωνικά Δίκτυα - Neural Networks]{Πόλωση}{Bias}                                      \\
+    \text{act} & η \newterm[Νευρωνικά Δίκτυα - Neural Networks]{Συνάρτηση Ενεργοποίησης}{Activation Function} που,
+    αν δεν είναι γραμμική, μπορεί να επιτρέψει στο νευρωνικό δίκτυο να μοντελοποιήσει μη-γραμμικά προβλήματα.
+    Μπορεί, για παράδειγμα, να είναι η σιγμοειδής συνάρτηση ή η \newterm[Νευρωνικά Δίκτυα - Neural Networks]{Μονάδα Γραμμικού Ανορθωτή}{Rectified Linear Unit - ReLU}:
+    \begin{equation}
+        f(x) = \max(0, x)
+    \end{equation}
+\end{conditions}
+Με την παράλληλη τοποθέτηση $N$ νευρώνων δημιουργείται μια \newterm{Βαθμίδα}{Layer} που έχει έξοδο:
+\begin{equation}
+    \vy = \text{act}\left(\mat{W}^\intercal \vx + \vec{b}\right)
+\end{equation}
+Ένα νευρωνικό δίκτυο (βλέπε και \fref{fig:neural-network}) δημιουργείται με τη σύνθεση πολλών τέτοιων βαθμίδων.
+Η πρώτη, που ονομάζεται \newtermprint[Input Layer]{Βαθμίδα Εισόδου}, δέχεται την είσοδο του μοντέλου
+και η τελευταία, \newtermprint[Output Layer]{Βαθμίδα Εξόδου}, υπολογίζει την έξοδο.
+
+Από την περίοδο της πρώτης εφαρμογής τους η μεθοδολογία χρήσης νευρωνικών δικτύων έχει εξελιχθεί σημαντικά.
+Μερικές σημαντικές εξελίξεις αποτελούν~\cite{goodfellow}:
+\begin{itemize}
+    \item Η \newtermprint[Distributed Representation]{Διανεμημένη Αναπαράσταση}~\cite{hinton1986learning},
+          σύμφωνα με την οποία κάθε νευρώνας συμμετέχει στην αναπαράσταση περισσότερων της μιας έννοιας και κάθε έννοια αναπαριστάται από περισσότερους του ενός νευρώνα.
+    \item Ο αλγόριθμος της \newterm[Νευρωνικά Δίκτυα - Neural Networks]{Οπισθοδιάδοση\dd{ς}}{Backpropagation}~\cite{werbos1974beyond,lecun1985procedure,parker1985learning,rumelhart1988learning}
+          ο οποίος επιτρέπει στην πληροφορία που προκύπτει από το σφάλμα στην μονάδα εξόδου να διαδοθεί στους νευρώνες όλου του δικτύου με σκοπό τον υπολογισμό της κλίσης για την ενημέρωσή τους.
+    \item Τα \newterm[Νευρωνικά Δίκτυα - Neural Networks]{\dd{Δίκτυα }Μακράς Βραχυπρόθεσμης Μνήμης}{Long Short-Term Memory - LSTM}~\cite{hochreiter1997long},
+          ένας τύπος \newterm[Νευρωνικά Δίκτυα]{Ανατροφοδοτούμεν\rr{ων}{α}\dd{ νευρωνικών δικτύων}}{Recurrent\dd{ Neural Networks} - RNN}.
+
+          Τα RNN είναι ένας τύπος νευρωνικού δικτύου που πέρα από την είσοδο $\vx$ αξιοποιούν και πληροφορίες από προηγούμενες εκτελέσεις τους.
+          Αυτό τους επιτρέπει να παρουσιάζουν δυναμική συμπεριφορά για μια ακολουθία.
+          Στα RNN συναντάται το πρόβλημα της \newtermprint[Vanishing Gradient]{εξαφανιζόμενης κλίσης} κατά το οποίο οι κλίσεις των πρώτων κρυφών βαθμίδων αποκτούν πολύ μικρές τιμές με αποτέλεσμα την πολύ αργή ανανέωση των βαρών τους.
+          Τα LSTM δίκτυα επιχειρούν να αντιμετωπίσουν αυτό το πρόβλημα με τα κελιά μακράς βραχυπρόθεσμης μνήμης που έχουν τη δυνατότητα να αποθηκεύουν μια πληροφορία για μεγάλα χρονικά διαστήματα.
+
+          Τα LSTM χρησιμοποιούνται ευρέως σήμερα για τη μοντελοποίηση ακολουθιών και βρίσκουν εφαρμογή στην επεξεργασία φυσικής γλώσσας.
+    \item Η επικράτηση μοντέλων \newterm[Νευρωνικά Δίκτυα - Neural Networks]{Βαθιά\dd{ς} Μάθηση\dd{ς}}{Deep Learning}
+          όπως τα \newterm[Νευρωνικά Δίκτυα]{Βαθιά Δίκτυα Πεποιθήσεων}{Deep Belief Networks - DBN}~\cite{hinton2006fast},
+          δηλαδή, νευρωνικών δικτύων που βασίζονται στην ύπαρξη πολλών κρυφών βαθμίδων ανάμεσα στην είσοδο και την έξοδο.
+\end{itemize}
+
+\ig[type=tikz]{LSTM}{\ccaption{Ένα κελί LSTM}{sennhauser2018evaluating}}
 
 % vim:ts=4:sw=4:expandtab:fo-=tc:tw=120

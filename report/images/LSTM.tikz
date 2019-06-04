@@ -1,0 +1,84 @@
+\begin{tikzpicture}[auto, thick, node distance=1cm, align=center, inner sep=2]
+    \draw
+    (2.2,0) node [name=input] {$x_t$};
+    \coordinate[above=of input] (p1);
+    \draw
+    node [right=1.2cm of p1, circle, draw, name=input activation, inner sep=1, scale=0.8] {$tanh$}
+    node [above of=input activation, name=input multiplication] {$\bigodot$}
+    node [above of=input multiplication, name=addition] {$\bigoplus$}
+    node [right of=addition, circle, draw, name=memory, node distance=0.9cm] {$c_t$}
+    node [above of=memory, circle, draw, name=output activation, inner sep=1, scale=0.8] {$tanh$}
+    node [above of=output activation, name=output multiplication] {$\bigodot$}
+    node [above of=output multiplication, name=output] {$h_t$}
+
+    node[left of=input multiplication, circle, draw, name=input gate, node distance=0.9cm] {$i_t$}
+    node[left of=addition, name=memory multiplication, node distance=0.8cm] {$\bigodot$}
+    node[above of=memory multiplication, circle, draw, name=forget gate, node distance=0.9cm] {$f_t$}
+    node[left of=output multiplication, circle, draw, name=output gate, node distance=0.9cm] {$o_t$}
+    ;
+
+    \coordinate (prev output x) at (0.8,0);
+    \draw
+    (0,0) node [name=prev input] {$x_{t-1}$}
+    node [above of=prev input, node distance=1.5cm, name=input ellipsis] {$\vdots$}
+    (prev output x |- output) node [name=prev output] {$h_{t-1}$}
+    (prev output.south |- memory multiplication) node [circle, draw, name=prev memory, inner sep=0] {$c_{t-1}$}
+    node [left of=prev memory, node distance=0.9cm, name=memory ellipsis in, scale=0.8] {$\ldots$}
+    node [above of=prev memory, node distance=1.2cm, name=memory ellipsis out] {$\vdots$}
+
+    node [below of=prev output, node distance=1.2cm, name=output ellipsis] {$\vdots$}
+    ;
+
+    \draw
+    (6.2,0) node [name=next input] {$x_{t+1}$}
+    node [above of=next input, node distance=1.5cm, name=next input ellipsis] {$\vdots$}
+    (next input |- memory) node [name=next memory ellipsis, scale=0.8] {$\ldots$}
+    (next input |- output) node [yshift=-1cm, node distance=3.8cm, name=next output ellipsis] {$\vdots$}
+    ;
+
+    \coordinate (p2) at (p1 |- input gate);
+    \coordinate (p3) at (p2 |- forget gate);
+    \coordinate (p4) at (p3 |- output gate);
+    \coordinate (p5) at ([xshift=-0.2cm]p4 |- prev output);
+
+
+    \draw[->] (prev input) -- (input ellipsis);
+    \draw[->, shorten >=1pt] (memory ellipsis in) -- (prev memory);
+    \draw[->, shorten <=2pt] (prev memory) -- (memory ellipsis out);
+    \draw[->] (output ellipsis) -- (prev output);
+
+    \draw[->, shorten <=2pt, shorten >=-2pt] (prev memory) -- (memory multiplication);
+
+    \draw[->, shorten >=1pt] (prev output) -- (p5) -- ([yshift=0.1cm, xshift=-0.2cm]p4) -- ([yshift=0.1cm]output gate.west);
+    \draw[->, shorten >=1pt] ([yshift=0.1cm, xshift=-0.2cm]p4) -- ([yshift=0.1cm, xshift=-0.2cm]p3) -- ([yshift=0.1cm]forget gate.west);
+    \draw[->, shorten >=1pt] ([yshift=0.1cm, xshift=-0.2cm]p3) -- ([yshift=0.1cm, xshift=-0.2cm]p2) -- ([yshift=0.1cm]input gate.west);
+    \draw[->, shorten >=1pt] ([yshift=0.1cm, xshift=-0.2cm]p2) -- ([yshift=0.1cm, xshift=-0.2cm]p1) -- ([yshift=0.1cm]input activation.west);
+
+
+    \draw[->, shorten >=1pt] (input) -- ([yshift=-0.1cm]p1) -- ([yshift=-0.1cm]input activation.west);
+    \draw[->, shorten >=1pt] ([yshift=-0.1cm]p1) -- ([yshift=-0.1cm]p2) -- ([yshift=-0.1cm]input gate.west);
+    \draw[->, shorten >=1pt] ([yshift=-0.1cm]p2) -- ([yshift=-0.1cm]p3) -- ([yshift=-0.1cm]forget gate.west);
+    \draw[->, shorten >=1pt] ([yshift=-0.1cm]p3) -- ([yshift=-0.1cm]p4) -- ([yshift=-0.1cm]output gate.west);
+    \draw[->, shorten >= -2pt] (input activation) -- (input multiplication);
+    \draw[->, shorten <=-2pt, shorten >=-2pt] (input multiplication) -- (addition);
+    \draw[->, shorten >=1pt, shorten <= -2pt] (addition) -- (memory);
+    \draw[->, shorten >=1pt, shorten <=1pt] (memory) -- (output activation);
+    \draw[->, shorten <=1pt] (output activation) -- (output multiplication);
+    \draw[->, shorten <=1pt] (output multiplication) -- (output);
+
+    \draw[->, shorten <=1pt, shorten >=-3pt] (input gate) -- (input multiplication);
+    \draw[->, shorten <=-2pt, shorten >= -2pt] (memory multiplication) -- (addition);
+    \draw[->, shorten <=1pt, shorten >=-3pt] (forget gate) -- (memory multiplication);
+    \draw[->, shorten <=1pt, shorten >=-3pt] (output gate) -- (output multiplication);
+
+    %% Boxes
+    \draw[->] (output) -- (next output ellipsis |- output) -- ([yshift=-0.2cm]next output ellipsis.north);
+    \draw[->, shorten <= 2pt] (memory) -- (next memory ellipsis);
+    \draw[->] (next input) -- (next input ellipsis);
+
+    \draw[gray] (1.7,0.7) rectangle (5.3,5.8);
+
+    \draw[dotted, gray] (-0.4,0.7) rectangle (1.4,5.8);
+
+    \draw[dotted, gray] (5.6,0.7) rectangle (6.9,5.8);
+\end{tikzpicture}
