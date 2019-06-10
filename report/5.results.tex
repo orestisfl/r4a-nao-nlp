@@ -29,11 +29,10 @@
 >>> doc[-1].pos_  # Θα έπρεπε και πάλι να είναι "ADV"
 'VERB'
     \end{minted}
-    \caption{Σφάλματα στην αντιστοίχηση ετικετών μερών του λόγου}\label{lst:problem-POS}
+    \caption{Σφάλματα στην αντιστοίχιση ετικετών μερών του λόγου}\label{lst:problem-POS}
 \end{listing}
 \begin{listing}[p]
     \begin{minted}{python}
->>> from pprint import pprint
 >>> from allennlp.predictors.predictor import Predictor
 >>> predictor = Predictor.from_path(
 ... "https://s3-us-west-2.amazonaws.com/allennlp/"
@@ -49,11 +48,31 @@
 ['[V: Turn] [ARGM-DIR: right] and then left',
  'Turn right and [ARGM-TMP: then] [V: left]']
     \end{minted}
-    \caption{Πως επηρεάζεται η υλοποίηση SRL από τα σφάλματα στην αντιστοίχηση ετικετών μερών του λόγου}\label{lst:problem-POS-SRL}
+    \caption{Πως επηρεάζεται η υλοποίηση SRL από τα σφάλματα στην αντιστοίχιση ετικετών μερών του λόγου}\label{lst:problem-POS-SRL}
 \end{listing}
 
 \subsection{Λόγω ανάθεσης σημασιολογικών ρόλων}
-Ένα παράδειγμα προβλήματος που μπορεί να προκύψει από την ανάθεση σημασιολογικών ρόλων είχε παρουσιαστεί στη \fref{lst:srl}.
+Ένα παράδειγμα προβλήματος που μπορεί να προκύψει από την ανάθεση σημασιολογικών ρόλων είχε παρουσιαστεί στην \fref{lst:srl}.
+Ένα δεύτερο παράδειγμα παρατίθεται στην \fref{lst:srl-problem}.
+
+\begin{listing}[t]
+    \begin{minted}{python}
+>>> from allennlp.predictors.predictor import Predictor
+>>> predictor = Predictor.from_path(
+...     "https://s3-us-west-2.amazonaws.com/allennlp/"
+...     "models/srl-model-2018.05.25.tar.gz"
+... )
+>>> [
+...     verb["description"]
+...     for verb in predictor.predict("Stand up and move forwards 5 meters")["verbs"]
+... ]
+['[V: Stand] up and move forwards 5 meters',
+ 'Stand up and [V: move] [ARGM-DIR: forwards] [ARG2: 5 meters]']
+\end{minted}
+    \lcaption{Σφάλμα στην ανάθεση σημασιολογικών ρόλων}{%
+        Το \engquote{up} δεν συμμετέχει στη πρώτη δομή.%
+    }\label{lst:srl-problem}
+\end{listing}
 
 \subsection{Λόγω επισήμανσης συναναφορών}
 Όπως αναφέρθηκε, το πρόβλημα της επισήμανσης συναναφορών (\fref{subsec:coref}) θεωρείται ακόμα ανοιχτό στον χώρο της κατανόησης φυσικής γλώσσας.
