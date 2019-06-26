@@ -9,7 +9,7 @@ all: images
 images: $(graphs) $(pgfs)
 
 images/graphs/%.pdf: images/graphs/%.gv
-	dot -Tsvg -O $<
+	dot -Tsvg -Gbgcolor=transparent -O $<
 	inkscape -D -z --file=$<.svg --export-pdf=$@ --export-latex
 	rm -f $<.svg
 
