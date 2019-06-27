@@ -20,6 +20,7 @@
 # *.ps
 # *.eps
 thesis.pdf
+presentation.pdf
 images/graphs/*.pdf
 images/graphs/*.pdf_tex
 images/*.pgf
