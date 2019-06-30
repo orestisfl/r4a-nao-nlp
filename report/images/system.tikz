@@ -4,7 +4,7 @@
         >=Stealth
     ]
     % Use links to appropriate sections
-    \hypersetup{linkcolor=black}
+    \hypersetup{hidelinks}
     % Nodes
     \node[coordinate, name=input] (input) {};
     \node[block, right=of input, text width=width("QuoteAnnotator")] (QuoteAnnotator) {\hyperref[subsec:4-QuoteAnnotator]{replace quotes w/ \texttt{QuoteAnnotator}}};
