@@ -1,8 +1,13 @@
 \input{./0/title.tex}
 
-\input{./0/props.tex}      \clearpage
-\input{./0/abstractGR.tex} \clearpage
-\input{./0/abstractEN.tex} \clearpage
+{
+    \addtolength{\voffset}{-2\baselineskip}
+    \addtolength{\footskip}{\baselineskip}
+    \input{./0/props.tex}      \clearpage
+    \enlargethispage*{2\baselineskip}
+    \input{./0/abstractGR.tex} \clearpage
+    \input{./0/abstractEN.tex} \clearpage
+}
 
 \tableofcontents\label{sec:TOC}
 \listoffigures
